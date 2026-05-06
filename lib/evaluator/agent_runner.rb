@@ -39,8 +39,6 @@ module Evaluator
     #
     # @return [Array<String, String>] A tuple containing the final answer and the diff.
     def call
-      print_header
-
       Sandbox.run(@full_eval_path) do |sandbox|
         working_dir = sandbox.path
         agent_result = ReactAgent.call(
@@ -58,19 +56,6 @@ module Evaluator
     end
 
     private
-
-    # Prints a visual separator to the console based on the current mode.
-    #
-    # @return [void]
-    def print_header
-      puts SEPARATOR
-      if @mode == :baseline
-        puts 'Running BASELINE evaluation (without context)...'
-      else
-        puts 'Running CONTEXT-HYDRATED evaluation...'
-      end
-      puts SEPARATOR
-    end
 
     # Builds the appropriate system prompt based on the execution mode.
     #

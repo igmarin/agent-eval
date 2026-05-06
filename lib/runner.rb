@@ -2,20 +2,12 @@
 
 require 'pathname'
 require 'parallel'
-require_relative 'client'
-require_relative 'context_hydrator'
-require_relative 'react_agent'
-require_relative 'evaluator/sandbox'
-require_relative 'evaluator/judge'
-require_relative 'evaluator/agent_runner'
-require_relative 'evaluator/source_path_resolver'
+require_relative 'evaluator/task_evaluator'
 
 module Evaluator
   # Orchestrates the entire evaluation process.
   # Compares how an AI coding agent performs with and without contextual skills.
   class Runner
-    SEPARATOR = '================================================='
-
     # Initiates a full evaluation run.
     #
     # @param params [Hash] The configuration for the evaluation.
@@ -51,79 +43,24 @@ module Evaluator
                  response: { error: { message: "No task.md found in #{full_path} or its subdirectories" } } }
       end
 
-      puts "Found #{task_dirs.size} tasks. Running evaluations in parallel (4 threads)..."
       results = Parallel.map(task_dirs, in_threads: 4) do |task_dir|
-        evaluate_task(task_dir)
+        TaskEvaluator.call(
+          full_eval_path: task_dir,
+          base_path: @base_path,
+          skill_path: @skill_path,
+          client_params: @client_params
+        )
       end
 
       {
         success: true,
-        source_path: @skill_path || 'multiple (batch run)',
-        tasks: results
+        response: {
+          source_path: @skill_path || 'multiple (batch run)',
+          tasks: results
+        }
       }
     rescue StandardError => e
       { success: false, response: { error: { message: e.message } } }
-    end
-
-    # Prints the judge evaluation header.
-    #
-    # @param relative_path [Pathname] The relative path to the task.
-    # @return [void]
-    # :reek:DuplicateMethodCall { enabled: false }
-    def print_judge_header(relative_path)
-      puts SEPARATOR
-      puts "Running JUDGE evaluation for #{relative_path}..."
-      puts SEPARATOR
-    end
-
-    # Evaluates a single task within the given directory.
-    #
-    # @param full_eval_path [Pathname] The path to the evaluation directory.
-    # @return [Hash] The result of the task evaluation.
-    # @raise [StandardError] If reading files or invoking AgentRunner.call or Judge.call fails and the error bubbles up.
-    def evaluate_task(full_eval_path)
-      task_content = File.read(full_eval_path.join('task.md'))
-      criteria_content = File.read(full_eval_path.join('criteria.json'))
-      relative_path = full_eval_path.relative_path_from(@base_path)
-
-      source_path = SourcePathResolver.call(
-        eval_folder_path: relative_path.to_s,
-        skill_path: @skill_path
-      )
-
-      baseline_result, baseline_code_diff = AgentRunner.call(
-        mode: :baseline,
-        full_eval_path: full_eval_path,
-        task_content: task_content,
-        client_params: @client_params
-      )
-
-      if source_path
-        context_result, context_code_diff = AgentRunner.call(
-          mode: :context,
-          full_eval_path: full_eval_path,
-          task_content: task_content,
-          client_params: @client_params,
-          source_path: source_path,
-          base_path: @base_path
-        )
-      else
-        puts "Warning: No source path inferred for #{relative_path}. Skipping context run."
-        context_result = 'Skipped: No source path inferred'
-        context_code_diff = ''
-      end
-
-      print_judge_header(relative_path)
-      judge_score = Judge.call(task_content, criteria_content, baseline_code_diff, context_code_diff, @client_params)
-
-      {
-        path: relative_path.to_s,
-        baseline: baseline_result,
-        baseline_diff: baseline_code_diff,
-        with_context: context_result,
-        context_diff: context_code_diff,
-        judge_score: judge_score
-      }
     end
 
     # Finds all directories containing a task.md file starting from the root_path.

@@ -26,16 +26,32 @@ class OllamaProviderTest < Minitest::Test
   end
 
   def test_base_url_uses_config_when_set
+    config_url = 'http://configured-host:11434'
+    Evaluator::Config.setup do |config|
+      config.set_provider_base_url(:ollama, config_url)
+    end
+
     provider = Evaluator::Clients::Providers::Ollama.new(
       system_prompt: 'test',
       messages: [],
       model: 'qwen2.5'
     )
 
-    # This test assumes config is set; if not, it falls back to localhost
-    url = provider.send(:base_url)
+    assert_equal config_url, provider.send(:base_url)
+  ensure
+    Evaluator::Config.reset
+  end
 
-    assert_includes ['http://localhost:11434', url], url
+  def test_base_url_falls_back_to_localhost_when_not_set
+    Evaluator::Config.reset
+
+    provider = Evaluator::Clients::Providers::Ollama.new(
+      system_prompt: 'test',
+      messages: [],
+      model: 'qwen2.5'
+    )
+
+    assert_equal 'http://localhost:11434', provider.send(:base_url)
   end
 
   def test_valid_config_with_model

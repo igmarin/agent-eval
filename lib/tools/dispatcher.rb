@@ -16,18 +16,19 @@ module Evaluator
       # @param arguments [String] A JSON string containing the arguments for the tool.
       # @param working_dir [String] The base directory in which the tool should operate.
       # @param container_id [String, nil] The Docker container ID for isolated execution.
-      # @return [String] The result of the tool execution, or an error message.
+      # @return [Hash] Result with :success key and :response containing tool output or error.
       # @raise [StandardError] when execution or argument parsing fails (rescued internally)
       def self.call(name, arguments, working_dir, container_id = nil)
         args = ArgumentParser.call(arguments)
-        return args if args.is_a?(String) # Returns the error message if parsing failed
+        return args if args.is_a?(Hash) && args[:success] == false
 
         working_dir_path = Pathname.new(working_dir).expand_path
 
-        execute_tool(name, args, working_dir_path, container_id)
+        result = execute_tool(name, args, working_dir_path, container_id)
+        { success: true, response: { result: result } }
       rescue StandardError => e
         log_error(e)
-        "Error executing tool: #{e.message}"
+        { success: false, response: { error: { message: "Error executing tool: #{e.message}" } } }
       end
 
       class << self
@@ -52,7 +53,7 @@ module Evaluator
           when 'run_command'
             RunCommand.call(args['command'], working_dir_path, container_id)
           else
-            "Error: Unknown tool '#{name}'"
+            raise StandardError, "Unknown tool '#{name}'"
           end
         end
       end

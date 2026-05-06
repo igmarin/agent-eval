@@ -18,7 +18,6 @@ module Evaluator
 
         while iterations < max_iterations
           iterations += 1
-          puts "  -> Iteration #{iterations}..."
 
           step_result = Step.call(messages, config)
           return step_result[:result] unless step_result[:continue]

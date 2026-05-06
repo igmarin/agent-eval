@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
 require_relative '../base_client'
+require_relative '../provider_registry'
 
 module Evaluator
   module Clients
     module Providers
       # Ollama-specific LLM client.
-      # Extends BaseClient to interact with an Ollama server (commonly used for open‑source models such as Qwen 3.5).
+      # Extends BaseClient to interact with an Ollama server (commonly used for open‑source models such as Qwen 3.5).
       # Ollama does not require an API key but requires a model to be configured.
       class Ollama < BaseClient
-        attr_reader :api_key, :model
+        Evaluator::Clients::ProviderRegistry.register(:ollama, self)
+        # api_key and model are inherited from BaseClient
 
         protected
 
@@ -42,7 +44,7 @@ module Evaluator
         # Ollama does not require an API key; validation only checks for a model.
         # @return [Boolean] true if a model is configured, false otherwise
         def valid_config?
-          !!@model && !@model.to_s.empty?
+          !@model.to_s.empty?
         end
 
         # Request headers omit Authorization if no API key is set.

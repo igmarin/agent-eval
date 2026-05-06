@@ -13,6 +13,10 @@ module Evaluator
 
     def setup
       Config.reset
+      # Ensure providers are registered (in case they weren't loaded)
+      Evaluator::Clients::ProviderRegistry.register(:openai, Evaluator::Clients::Providers::OpenAI)
+      Evaluator::Clients::ProviderRegistry.register(:gemini, Evaluator::Clients::Providers::Gemini)
+      Evaluator::Clients::ProviderRegistry.register(:ollama, Evaluator::Clients::Providers::Ollama)
     end
 
     def teardown

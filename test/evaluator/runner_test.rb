@@ -31,6 +31,38 @@ module Evaluator
       assert_match(/does not exist/, result[:response][:error][:message])
     end
 
+    def test_call_returns_failure_when_task_md_missing
+      create_eval_fixture('tmp/test-missing-task')
+      # Remove task.md to simulate missing file
+      File.delete(@base_path.join('tmp/test-missing-task/task.md'))
+
+      result = Runner.call(
+        eval_folder_path: 'tmp/test-missing-task',
+        base_path: @base_path
+      )
+
+      refute result[:success]
+      assert_match(/No task.md found/, result[:response][:error][:message])
+    end
+
+    def test_call_returns_failure_when_criteria_json_missing
+      create_eval_fixture('tmp/test-missing-criteria')
+      # Remove criteria.json to simulate missing file
+      File.delete(@base_path.join('tmp/test-missing-criteria/criteria.json'))
+
+      result = Runner.call(
+        eval_folder_path: 'tmp/test-missing-criteria',
+        base_path: @base_path
+      )
+
+      # Task will fail during evaluation due to missing criteria.json
+      # Check the task result in the response
+      task_result = result[:response][:tasks].first
+
+      refute task_result[:success]
+      assert_match(/File not found/, task_result[:response][:error][:message])
+    end
+
     def test_call_infers_source_path_for_skill_evals
       expect_single_task_run(
         source_path: 'skills/ruby-service-objects'
@@ -42,9 +74,9 @@ module Evaluator
       )
 
       assert result[:success]
-      assert_equal 'multiple (batch run)', result[:source_path]
-      assert_equal 1, result[:tasks].size
-      assert_equal 'skills/ruby-service-objects', SourcePathResolver.call(eval_folder_path: result[:tasks].first[:path])
+      assert_equal 'multiple (batch run)', result[:response][:source_path]
+      assert_equal 1, result[:response][:tasks].size
+      assert_equal 'skills/ruby-service-objects', SourcePathResolver.call(eval_folder_path: result[:response][:tasks].first[:path])
     end
 
     def test_call_infers_source_path_for_workflow_evals
@@ -58,7 +90,7 @@ module Evaluator
       )
 
       assert result[:success]
-      assert_equal 'multiple (batch run)', result[:source_path]
+      assert_equal 'multiple (batch run)', result[:response][:source_path]
     end
 
     def test_call_uses_explicit_source_path_override
@@ -73,7 +105,7 @@ module Evaluator
       )
 
       assert result[:success]
-      assert_equal 'skills/ruby-service-objects', result[:source_path]
+      assert_equal 'skills/ruby-service-objects', result[:response][:source_path]
     end
 
     def test_call_succeeds_without_context_when_source_path_cannot_be_inferred
@@ -81,7 +113,7 @@ module Evaluator
 
       # Both modes are invoked; we allow at least once to cover baseline and (potential) context
       AgentRunner.expects(:call).at_least_once.returns(%w[output diff])
-      Judge.expects(:call).at_least_once.returns('{}')
+      Judge.expects(:call).at_least_once.returns({ success: true, response: { content: '{}' } })
 
       result = Runner.call(
         eval_folder_path: 'tmp/custom-evals/unmapped-task',
@@ -89,7 +121,7 @@ module Evaluator
       )
 
       assert result[:success]
-      assert_equal 'multiple (batch run)', result[:source_path]
+      assert_equal 'multiple (batch run)', result[:response][:source_path]
     end
 
     private

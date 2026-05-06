@@ -23,6 +23,8 @@ module Evaluator
       # @return [Hash] with :success [Boolean] and :response [Hash] keys.
       #   The :response hash contains :message [Hash] on success,
       #   or :error [Hash] with :message [String] on failure.
+      # @raise [Faraday::ConnectionFailed] if connection to API fails
+      # @raise [Faraday::TimeoutError] if request times out
       # @raise [StandardError] if an unexpected error occurs (rescued internally and logged).
       def self.call(system_prompt:, messages:, tools: [], **options)
         new(system_prompt: system_prompt, messages: messages, tools: tools, **options).call
@@ -34,6 +36,7 @@ module Evaluator
       # @param messages [Array<Hash>]
       # @param tools [Array<Hash>]
       # @param options [Hash]
+      # @raise [StandardError] if initialization parameters are invalid
       def initialize(system_prompt:, messages:, tools: [], **options)
         @system_prompt = system_prompt
         @messages = messages
@@ -45,6 +48,9 @@ module Evaluator
       # Executes the request flow: configuration -> request -> response handling.
       #
       # @return [Hash] Standardized response contract.
+      # @raise [Faraday::ConnectionFailed] if connection to API fails
+      # @raise [Faraday::TimeoutError] if request times out
+      # @raise [StandardError] if an unexpected error occurs (rescued internally)
       def call
         return config_error unless valid_config?
 
