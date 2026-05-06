@@ -2,6 +2,7 @@ doc/
 .DS_Store
 coverage
 Gemfile.lock
+*.gem
 .snyk
 /.yardoc/
 /.bundle/

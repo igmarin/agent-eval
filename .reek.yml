@@ -84,6 +84,7 @@ detectors:
       - "Evaluator::Clients::Providers::Anthropic#extract_message"
       - "Evaluator::Clients::Providers::AzureOpenAI#extract_message"
       - "Evaluator::Clients::Providers::NullClient#config_error"
+      - "Evaluator::Clients::Providers::Ollama#base_url"
       - "Evaluator::EvaluateCommand#parse_judge_score"
   NilCheck:
     exclude:

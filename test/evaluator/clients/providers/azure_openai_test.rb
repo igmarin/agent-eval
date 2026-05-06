@@ -55,6 +55,7 @@ class AzureOpenAITest < Minitest::Test
     Evaluator::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
+      config.set_provider_model(:azure, 'gpt-4')
       config.current_llm_provider = :azure
     end
 
@@ -67,6 +68,7 @@ class AzureOpenAITest < Minitest::Test
     Evaluator::Config.setup do |config|
       config.set_provider_api_key(:azure, nil)
       config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
+      config.set_provider_model(:azure, 'gpt-4')
       config.current_llm_provider = :azure
     end
 
@@ -79,6 +81,20 @@ class AzureOpenAITest < Minitest::Test
     Evaluator::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_endpoint(:azure, nil)
+      config.set_provider_model(:azure, 'gpt-4')
+      config.current_llm_provider = :azure
+    end
+
+    client = create_client
+
+    refute client.send(:valid_config?)
+  end
+
+  def test_valid_config_missing_model
+    Evaluator::Config.setup do |config|
+      config.set_provider_api_key(:azure, 'test-key')
+      config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
+      config.set_provider_model(:azure, nil)
       config.current_llm_provider = :azure
     end
 
@@ -91,6 +107,7 @@ class AzureOpenAITest < Minitest::Test
     Evaluator::Config.setup do |config|
       config.set_provider_api_key(:azure, nil)
       config.set_provider_endpoint(:azure, nil)
+      config.set_provider_model(:azure, nil)
       config.current_llm_provider = :azure
     end
 
@@ -98,8 +115,9 @@ class AzureOpenAITest < Minitest::Test
     result = client.send(:config_error)
 
     refute result[:success]
-    assert_match(/API_KEY/, result[:response][:error][:message])
-    assert_match(/ENDPOINT/, result[:response][:error][:message])
+    assert_match(/AZURE_OPENAI_API_KEY/, result[:response][:error][:message])
+    assert_match(/AZURE_OPENAI_ENDPOINT/, result[:response][:error][:message])
+    assert_match(/AZURE_OPENAI_MODEL/, result[:response][:error][:message])
   end
 
   private
