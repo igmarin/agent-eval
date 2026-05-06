@@ -5,6 +5,14 @@ require_relative '../../lib/agent_eval/commands/init'
 
 RSpec.describe AgentEval::Commands::Init do
   describe '.run' do
+    around(:each) do |example|
+      Dir.mktmpdir do |tmp_dir|
+        Dir.chdir(tmp_dir) do
+          example.run
+        end
+      end
+    end
+
     it 'generates .agent-eval.yml by default' do
       described_class.run
       expect(File).to exist('.agent-eval.yml')

@@ -38,10 +38,10 @@ Aligns with all user decisions:
 | Command | Description | Flags |
 |---------|-------------|-------|
 | `agent-eval init [--rails]` | Generate `.agent-eval.yml` config. `--rails` adds Rails defaults | `--rails` |
-| `agent-eval skill new <name> [--mode=simple|advanced]` | Scaffold new skill | `--mode` (default: simple) |
-| `agent-eval eval new <name> [--runtime=rails|generic]` | Scaffold new eval | `--runtime` (default: generic) |
+| `agent-eval skill new <name> [--mode=simple\|advanced]` | Scaffold new skill | `--mode` (default: simple) |
+| `agent-eval eval new <name> [--runtime=rails\|generic]` | Scaffold new eval | `--runtime` (default: generic) |
 | `agent-eval run <eval> [--skill=<name>] [--provider=<runtime:llm>] [--ci]` | Run specified eval | `--skill`, `--provider`, `--ci` |
-| `agent-eval list skills|evals|providers` | List available resources | - |
+| `agent-eval list skills\|evals\|providers` | List available resources | - |
 | `agent-eval score <eval> --result=<path>` | Score existing eval result | `--result` |
 
 ### Global Flags

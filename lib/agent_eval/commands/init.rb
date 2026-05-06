@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'yaml'
-require_relative '../models/config'
 
 module AgentEval
   module Commands
@@ -11,6 +10,8 @@ module AgentEval
       # @param options [Hash] Options for init (e.g., rails: true)
       # @return [void]
       def self.run(options = {})
+        raise 'Config file already exists. Use --force to overwrite or backup the file first.' if File.exist?('.agent-eval.yml')
+
         config = default_config
         config['rails'] = rails_config if options[:rails]
 

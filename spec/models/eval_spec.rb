@@ -15,7 +15,7 @@ RSpec.describe AgentEval::Models::Eval do
 
   describe '#criteria' do
     it 'loads criteria from criteria.json' do
-      eval = described_class.new(name: 'test', path: 'evals/test-eval')
+      eval = described_class.new(name: 'test-eval', path: 'evals/test-eval')
       expect(eval.criteria).to be_a(Hash)
     end
   end

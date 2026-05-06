@@ -8,7 +8,8 @@ RSpec.describe AgentEval::Models::Skill do
     it 'discovers skills from the default skills/ directory' do
       skills = described_class.discover
       expect(skills).to be_an(Array)
-      expect(skills.first).to be_a(described_class) if skills.any?
+      expect(skills).not_to be_empty
+      expect(skills.first).to be_a(described_class)
     end
 
     it 'discovers skills from a custom path' do

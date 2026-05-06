@@ -13,8 +13,15 @@ RSpec.describe AgentEval::Models::Config do
     end
 
     it 'accepts custom config path via parameter' do
+      allow(YAML).to receive(:safe_load_file).and_return({ 'providers' => { 'test' => {} } })
       config = described_class.load('custom_config.yml')
       expect(config).to be_a(described_class)
+    end
+
+    it 'returns empty config when file does not exist' do
+      allow(YAML).to receive(:safe_load_file).and_raise(Errno::ENOENT)
+      config = described_class.load('nonexistent.yml')
+      expect(config.providers).to eq({})
     end
   end
 

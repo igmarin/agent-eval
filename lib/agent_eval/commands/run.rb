@@ -47,18 +47,18 @@ module AgentEval
       # @param _skill [AgentEval::Models::Skill] Skill to use
       # @param _provider [AgentEval::Models::Provider] Provider to use
       # @return [String] Agent execution result
+      # @raise [NotImplementedError] agent spawning not yet implemented
       def self.spawn_agent(_eval, _skill, _provider)
-        # TODO: Implement actual agent spawning (subprocess or Ruby class)
-        'Agent result placeholder'
+        raise NotImplementedError, 'Agent spawning not yet implemented'
       end
 
       # Score the agent result against eval criteria
       # @param _eval [AgentEval::Models::Eval] Eval with criteria
       # @param _result [String] Agent execution result
       # @return [Hash] Score with pass/fail and score value
+      # @raise [NotImplementedError] scoring not yet implemented
       def self.score_result(_eval, _result)
-        # TODO: Implement scoring logic (LLM or custom scorer)
-        { pass: true, score: 1.0 }
+        raise NotImplementedError, 'Scoring not yet implemented'
       end
     end
   end

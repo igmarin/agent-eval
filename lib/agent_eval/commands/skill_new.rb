@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'fileutils'
-require 'active_support/core_ext/string/inflections'
 
 module AgentEval
   module Commands
@@ -60,11 +59,18 @@ module AgentEval
         MARKDOWN
       end
 
+      # Convert snake_case to CamelCase
+      # @param string [String] String to convert
+      # @return [String] CamelCase string
+      def self.camelize(string)
+        string.split(/[_\s]+/).map(&:capitalize).join
+      end
+
       # Generate advanced skill template
       # @param name [String] Skill name
       # @return [String] Ruby class template
       def self.advanced_skill_template(name)
-        class_name = name.camelize
+        class_name = camelize(name)
         <<~RUBY
           # frozen_string_literal: true
 
