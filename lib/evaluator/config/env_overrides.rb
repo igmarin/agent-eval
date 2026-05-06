@@ -9,7 +9,8 @@ module Evaluator
         'OPENAI_API_KEY' => %i[openai api_key],
         'GEMINI_API_KEY' => %i[gemini api_key],
         'GEMINI_LOCATION' => %i[gemini location],
-        'GEMINI_PROJECT_ID' => %i[gemini project_id]
+        'GEMINI_PROJECT_ID' => %i[gemini project_id],
+        'OLLAMA_BASE_URL' => %i[ollama base_url]
       }.freeze
 
       # Returns provider overrides from the given environment.

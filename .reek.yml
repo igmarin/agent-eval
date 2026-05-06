@@ -31,6 +31,7 @@ detectors:
       - "Evaluator::Config"
       - "Evaluator::Clients::Providers::OpenAI"
       - "Evaluator::Clients::Providers::Gemini"
+      - "Evaluator::Clients::Providers::Ollama"
   MissingSafeMethod:
     enabled: false
   ControlParameter:
