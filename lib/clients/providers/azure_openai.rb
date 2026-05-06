@@ -23,9 +23,7 @@ module Evaluator
           env_url = ENV.fetch('AZURE_OPENAI_ENDPOINT', nil)
           return env_url unless env_url.to_s.empty?
 
-          return @endpoint.to_s unless @endpoint.to_s.empty?
-
-          'https://<your-resource>.openai.azure.com'
+          @endpoint.to_s
         end
 
         # @return [String]
@@ -43,7 +41,7 @@ module Evaluator
 
         # @return [Boolean]
         def valid_config?
-          !(@api_key.to_s.strip.empty? || @model.to_s.strip.empty?)
+          !(@api_key.to_s.strip.empty? || @model.to_s.strip.empty? || @endpoint.to_s.strip.empty?)
         end
 
         # @return [Hash]
@@ -51,6 +49,7 @@ module Evaluator
           missing = []
           missing << 'API_KEY' if @api_key.to_s.strip.empty?
           missing << 'model (deployment name)' if @model.to_s.strip.empty?
+          missing << 'ENDPOINT' if @endpoint.to_s.strip.empty?
           message = if missing.length > 1
                       "#{missing[0...-1].join(', ')}, and #{missing[-1]} not set for Azure OpenAI"
                     else
@@ -68,6 +67,8 @@ module Evaluator
         def extract_message(body)
           body.dig('choices', 0, 'message')
         end
+
+        attr_reader :endpoint
       end
     end
   end

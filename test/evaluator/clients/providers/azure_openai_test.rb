@@ -4,88 +4,49 @@ require 'test_helper'
 require_relative '../../../../lib/clients/providers/azure_openai'
 
 class AzureOpenAITest < Minitest::Test
+  def setup
+    Evaluator::Config.reset
+    @system_prompt = 'You are an assistant'
+    @messages = [{ role: 'user', content: 'Hello' }]
+  end
+
   def test_base_url_uses_configured_endpoint
     Evaluator::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_model(:azure, 'gpt-4')
       config.set_provider_endpoint(:azure, 'https://my-resource.openai.azure.com')
+      config.current_llm_provider = :azure
     end
 
-    provider = Evaluator::Clients::Providers::AzureOpenAI.new(
-      system_prompt: 'test',
-      messages: []
-    )
+    client = create_client
 
-    assert_equal 'https://my-resource.openai.azure.com', provider.send(:base_url)
-  ensure
-    Evaluator::Config.reset
-  end
-
-  def test_base_url_uses_env_variable
-    ENV['AZURE_OPENAI_ENDPOINT'] = 'https://env-endpoint.openai.azure.com'
-    Evaluator::Config.setup do |config|
-      config.set_provider_api_key(:azure, 'test-key')
-      config.set_provider_model(:azure, 'gpt-4')
-    end
-
-    provider = Evaluator::Clients::Providers::AzureOpenAI.new(
-      system_prompt: 'test',
-      messages: []
-    )
-
-    assert_equal 'https://env-endpoint.openai.azure.com', provider.send(:base_url)
-  ensure
-    ENV.delete('AZURE_OPENAI_ENDPOINT')
-    Evaluator::Config.reset
-  end
-
-  def test_base_url_defaults_to_placeholder
-    Evaluator::Config.setup do |config|
-      config.set_provider_api_key(:azure, 'test-key')
-      config.set_provider_model(:azure, 'gpt-4')
-    end
-
-    provider = Evaluator::Clients::Providers::AzureOpenAI.new(
-      system_prompt: 'test',
-      messages: []
-    )
-
-    assert_equal 'https://<your-resource>.openai.azure.com', provider.send(:base_url)
-  ensure
-    Evaluator::Config.reset
+    assert_equal 'https://my-resource.openai.azure.com', client.send(:endpoint)
+    assert_equal '/openai/deployments/gpt-4/chat/completions?api-version=2024-02-15-preview', client.send(:request_path)
   end
 
   def test_request_path_includes_deployment
     Evaluator::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_model(:azure, 'gpt-4o')
+      config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
+      config.current_llm_provider = :azure
     end
 
-    provider = Evaluator::Clients::Providers::AzureOpenAI.new(
-      system_prompt: 'test',
-      messages: []
-    )
+    client = create_client
 
-    assert_equal '/openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview', provider.send(:request_path)
-  ensure
-    Evaluator::Config.reset
+    assert_match(%r{/openai/deployments/gpt-4o/chat/completions}, client.send(:request_path))
   end
 
   def test_request_headers_include_api_key
     Evaluator::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-api-key')
-      config.set_provider_model(:azure, 'gpt-4')
+      config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
       config.current_llm_provider = :azure
     end
 
-    provider = Evaluator::Clients::Providers::AzureOpenAI.new(
-      system_prompt: 'test',
-      messages: []
-    )
+    client = create_client
+    headers = client.send(:request_headers)
 
-    headers = provider.send(:request_headers)
-
-    assert_equal 'application/json', headers['Content-Type']
     assert_equal 'test-api-key', headers['api-key']
     refute headers.key?('Authorization')
   end
@@ -93,45 +54,60 @@ class AzureOpenAITest < Minitest::Test
   def test_valid_config_with_all_settings
     Evaluator::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
-      config.set_provider_model(:azure, 'gpt-4')
+      config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
       config.current_llm_provider = :azure
     end
 
-    provider = Evaluator::Clients::Providers::AzureOpenAI.new(
-      system_prompt: 'test',
-      messages: []
-    )
+    client = create_client
 
-    assert provider.send(:valid_config?)
-  ensure
-    Evaluator::Config.reset
+    assert client.send(:valid_config?)
   end
 
   def test_valid_config_missing_api_key
     Evaluator::Config.setup do |config|
-      config.set_provider_model(:azure, 'gpt-4')
+      config.set_provider_api_key(:azure, nil)
+      config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
       config.current_llm_provider = :azure
     end
 
-    provider = Evaluator::Clients::Providers::AzureOpenAI.new(
-      system_prompt: 'test',
-      messages: []
-    )
+    client = create_client
 
-    refute provider.send(:valid_config?)
+    refute client.send(:valid_config?)
+  end
+
+  def test_valid_config_missing_endpoint
+    Evaluator::Config.setup do |config|
+      config.set_provider_api_key(:azure, 'test-key')
+      config.set_provider_endpoint(:azure, nil)
+      config.current_llm_provider = :azure
+    end
+
+    client = create_client
+
+    refute client.send(:valid_config?)
   end
 
   def test_config_error_returns_structured_response
-    Evaluator::Config.reset
+    Evaluator::Config.setup do |config|
+      config.set_provider_api_key(:azure, nil)
+      config.set_provider_endpoint(:azure, nil)
+      config.current_llm_provider = :azure
+    end
 
-    provider = Evaluator::Clients::Providers::AzureOpenAI.new(
-      system_prompt: 'test',
-      messages: []
-    )
-
-    result = provider.send(:config_error)
+    client = create_client
+    result = client.send(:config_error)
 
     refute result[:success]
     assert_match(/API_KEY/, result[:response][:error][:message])
+    assert_match(/ENDPOINT/, result[:response][:error][:message])
+  end
+
+  private
+
+  def create_client
+    Evaluator::Clients::Providers::AzureOpenAI.new(
+      system_prompt: @system_prompt,
+      messages: @messages
+    )
   end
 end

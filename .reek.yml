@@ -33,6 +33,7 @@ detectors:
       - "Evaluator::Clients::Providers::Gemini"
       - "Evaluator::Clients::Providers::Ollama"
       - "Evaluator::Clients::Providers::Anthropic"
+      - "Evaluator::Clients::Providers::AzureOpenAI"
   MissingSafeMethod:
     enabled: false
   ControlParameter:
@@ -73,6 +74,7 @@ detectors:
       - "Evaluator::Clients::BaseClient#handle_response"
       - "Evaluator::Clients::Providers::Gemini#config_error"
       - "Evaluator::Clients::Providers::Anthropic#config_error"
+      - "Evaluator::Clients::Providers::AzureOpenAI#config_error"
   UtilityFunction:
     exclude:
       - "Evaluator::Clients::BaseClient#failure_response"
@@ -80,6 +82,7 @@ detectors:
       - "Evaluator::Clients::Providers::OpenAI#extract_message"
       - "Evaluator::Clients::Providers::Gemini#extract_message"
       - "Evaluator::Clients::Providers::Anthropic#extract_message"
+      - "Evaluator::Clients::Providers::AzureOpenAI#extract_message"
       - "Evaluator::Clients::Providers::NullClient#config_error"
       - "Evaluator::EvaluateCommand#parse_judge_score"
   NilCheck:
