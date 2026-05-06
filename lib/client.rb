@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require_relative 'config'
+require_relative 'clients/provider_registry'
 require_relative 'clients/providers/openai'
 require_relative 'clients/providers/gemini'
+require_relative 'clients/providers/ollama'
+require_relative 'clients/providers/anthropic'
 require_relative 'clients/providers/null_client'
 
 module Evaluator
@@ -32,18 +35,12 @@ module Evaluator
       private
 
       # Maps the current provider to its implementation class.
+      # Uses ProviderRegistry for extensible lookup.
       # Returns NullClient if no match is found (Null Object Pattern).
       #
       # @return [Class]
       def provider_client_class
-        case Evaluator::Config.current_llm_provider
-        when :openai
-          Evaluator::Clients::Providers::OpenAI
-        when :gemini
-          Evaluator::Clients::Providers::Gemini
-        else
-          Evaluator::Clients::Providers::NullClient
-        end
+        Evaluator::Clients::ProviderRegistry.for(Evaluator::Config.current_llm_provider)
       end
 
       # Logs dispatch-level errors.

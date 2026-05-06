@@ -199,6 +199,7 @@ DEPENDENCIES
   rubocop-performance (~> 1.26)
   rubocop-rake (~> 0.7)
   rubocop-yard
+  simplecov (~> 0.22)
   skunk (~> 0.5.4)
   webmock (~> 3.23)
 

@@ -14,6 +14,7 @@ This engine is the core validation tool for the [rails-agent-skills](https://git
 - **LLM-Powered Judging**: Automatic scoring of code changes against task-specific criteria.
 - **ReAct Loop**: Uses a sophisticated Thought/Tool/Observation loop for complex multi-step tasks.
 - **Support for Skills & Workflows**: Handles both atomic tools and multi-stage instruction sets.
+- **Multiple LLM Providers**: Supports OpenAI, Google Gemini, Ollama (local models), and Anthropic Claude.
 
 ## Installation
 

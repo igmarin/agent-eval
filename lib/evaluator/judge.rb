@@ -13,7 +13,7 @@ module Evaluator
     # @param baseline_diff [String] The diff generated without context.
     # @param context_diff [String] The diff generated with context.
     # @param client_params [Hash] Optional parameters to pass to the client.
-    # @return [String] A JSON string containing the scores and reasoning.
+    # @return [Hash] with :success [Boolean] and :response containing scores or error.
     def self.call(task_content, criteria_content, baseline_diff, context_diff, client_params = {})
       new(task_content, criteria_content, baseline_diff, context_diff, client_params).call
     end
@@ -33,7 +33,7 @@ module Evaluator
 
     # Executes the evaluation process via the LLM client.
     #
-    # @return [String] A JSON string representing the judge's score and reasoning.
+    # @return [Hash] with :success [Boolean] and :response containing JSON string or error.
     def call
       system_prompt = 'You are an objective judge evaluating AI coding models. Your goal is to score responses based strictly on the provided criteria.'
 
@@ -73,8 +73,10 @@ module Evaluator
         **@client_params
       )
 
+      return judge_result unless judge_result[:success]
+
       response = judge_result[:response]
-      judge_result[:success] ? response[:message]['content'] : "Error running judge: #{response[:error][:message]}"
+      { success: true, response: { content: response[:message]['content'] } }
     end
   end
 end

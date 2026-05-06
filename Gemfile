@@ -15,6 +15,7 @@ group :development, :test do
   gem 'rubocop-performance', '~> 1.26', require: false
   gem 'rubocop-rake', '~> 0.7', require: false
   gem 'rubocop-yard', require: false
+  gem 'simplecov', '~> 0.22', require: false
   gem 'skunk', '~> 0.5.4'
   gem 'webmock', '~> 3.23'
 end

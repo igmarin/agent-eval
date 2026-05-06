@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../base_client'
+require_relative '../provider_registry'
 
 module Evaluator
   module Clients
@@ -8,6 +9,8 @@ module Evaluator
       # OpenAI-specific LLM client.
       # Inherits common logic from BaseClient.
       class OpenAI < BaseClient
+        Evaluator::Clients::ProviderRegistry.register(:openai, self)
+
         protected
 
         # @return [String]

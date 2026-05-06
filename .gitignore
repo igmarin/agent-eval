@@ -1,0 +1,7 @@
+doc/
+.DS_Store
+coverage
+.yardoc/*
+/.bundle/
+/_yardoc/
+/tmp/

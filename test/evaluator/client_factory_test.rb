@@ -4,6 +4,7 @@ require 'test_helper'
 require_relative '../../lib/client' # This is the factory client
 require_relative '../../lib/clients/providers/openai'
 require_relative '../../lib/clients/providers/gemini'
+require_relative '../../lib/clients/providers/ollama'
 require_relative '../../lib/clients/providers/null_client'
 
 module Evaluator
@@ -12,6 +13,10 @@ module Evaluator
 
     def setup
       Config.reset
+      # Ensure providers are registered (in case they weren't loaded)
+      Evaluator::Clients::ProviderRegistry.register(:openai, Evaluator::Clients::Providers::OpenAI)
+      Evaluator::Clients::ProviderRegistry.register(:gemini, Evaluator::Clients::Providers::Gemini)
+      Evaluator::Clients::ProviderRegistry.register(:ollama, Evaluator::Clients::Providers::Ollama)
     end
 
     def teardown
@@ -48,6 +53,21 @@ module Evaluator
 
       assert result[:success]
       assert_equal 'Gemini response', result[:response][:message][:content]
+    end
+
+    def test_call_dispatches_to_ollama_client_when_configured
+      Config.current_llm_provider = :ollama
+      Config.setup do |config|
+        config.set_provider_model(:ollama, 'qwen2.5')
+      end
+
+      # Stub the Ollama provider client class method
+      Evaluator::Clients::Providers::Ollama.stubs(:call).returns({ success: true, response: { message: { content: 'Ollama response' } } })
+
+      result = Client.call(system_prompt: 'System', messages: [{ role: 'user', content: 'Hi' }])
+
+      assert result[:success]
+      assert_equal 'Ollama response', result[:response][:message][:content]
     end
 
     def test_call_dispatches_to_null_client_for_unsupported_provider

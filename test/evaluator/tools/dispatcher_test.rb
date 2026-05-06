@@ -28,16 +28,18 @@ module Evaluator
       end
 
       def test_execute_unknown_tool
-        result = Dispatcher.call('unknown', '{}', Dir.pwd)
-
-        assert_equal "Error: Unknown tool 'unknown'", result
+        error = assert_raises(StandardError) do
+          Dispatcher.call('unknown', '{}', Dir.pwd)
+        end
+        assert_match(/Unknown tool/, error.message)
       end
 
       def test_execute_rescues_standard_error
         Evaluator::Tools::ReadFile.expects(:call).raises(StandardError, 'Oops')
-        result = Dispatcher.call('read_file', '{"path":"test.txt"}', Dir.pwd, nil)
-
-        assert_equal 'Error executing tool: Oops', result
+        error = assert_raises(StandardError) do
+          Dispatcher.call('read_file', '{"path":"test.txt"}', Dir.pwd, nil)
+        end
+        assert_equal 'Oops', error.message
       end
     end
   end

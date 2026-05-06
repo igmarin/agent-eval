@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../base_client'
+require_relative '../provider_registry'
 
 module Evaluator
   module Clients
@@ -8,6 +9,8 @@ module Evaluator
       # Gemini-specific LLM client using the OpenAI-compatible endpoint.
       # Inherits common logic from BaseClient.
       class Gemini < BaseClient
+        Evaluator::Clients::ProviderRegistry.register(:gemini, self)
+
         attr_reader :location, :project_id
 
         # Initializes the Gemini client.

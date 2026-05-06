@@ -18,7 +18,8 @@ class JudgeTest < Minitest::Test
 
     result = Evaluator::Judge.call(task, criteria, baseline_diff, context_diff)
 
-    assert_equal '{"baseline_score": 80, "context_score": 90, "reasoning": "better context"}', result
+    assert result[:success]
+    assert_equal '{"baseline_score": 80, "context_score": 90, "reasoning": "better context"}', result[:response][:content]
   end
 
   def test_call_returns_error_on_client_failure
@@ -26,6 +27,7 @@ class JudgeTest < Minitest::Test
 
     result = Evaluator::Judge.call('task', 'criteria', 'diff1', 'diff2')
 
-    assert_equal 'Error running judge: API failure', result
+    refute result[:success]
+    assert_equal 'API failure', result[:response][:error][:message]
   end
 end

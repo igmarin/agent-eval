@@ -9,7 +9,8 @@ module Evaluator
         api_key: :api_key,
         model: :model,
         location: :location,
-        project_id: :project_id
+        project_id: :project_id,
+        base_url: :base_url
       }.freeze
 
       # Dynamically sets a specific provider's API key.
@@ -46,6 +47,15 @@ module Evaluator
       # @return [String, nil] assigned project ID
       def set_provider_project_id(provider, project_id_value)
         set_provider_setting(provider, PROVIDER_SETTINGS.fetch(:project_id), project_id_value)
+      end
+
+      # Dynamically sets a specific provider's base URL.
+      #
+      # @param provider [String, Symbol] provider name
+      # @param base_url_value [String, nil] provider base URL
+      # @return [String, nil] assigned base URL
+      def set_provider_base_url(provider, base_url_value)
+        set_provider_setting(provider, PROVIDER_SETTINGS.fetch(:base_url), base_url_value)
       end
 
       # Sets the current LLM provider.
