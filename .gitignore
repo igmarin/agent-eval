@@ -1,7 +1,16 @@
 doc/
 .DS_Store
 coverage
-.yardoc/*
+Gemfile.lock
+.snyk
+/.yardoc/
 /.bundle/
 /_yardoc/
 /tmp/
+.opencode
+.claude/
+gems-report.csv
+.codex
+.windsurfrules
+.github/copilot-instructions.md
+.github/hooks/rtk-rewrite.json

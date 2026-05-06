@@ -7,6 +7,10 @@
 
 This engine is the core validation tool for the [rails-agent-skills](https://github.com/igmarin/rails-agent-skills) library.
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/igmarin/rails-agent-eval?utm_source=oss&utm_medium=github&utm_campaign=igmarin%2Frails-agent-eval&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
+---
+
 ## Features
 
 - **Side-by-Side Evaluation**: Compare an agent's performance with and without specific skill context.

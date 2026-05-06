@@ -10,7 +10,8 @@ module Evaluator
         model: :model,
         location: :location,
         project_id: :project_id,
-        base_url: :base_url
+        base_url: :base_url,
+        endpoint: :endpoint
       }.freeze
 
       # Dynamically sets a specific provider's API key.
@@ -56,6 +57,15 @@ module Evaluator
       # @return [String, nil] assigned base URL
       def set_provider_base_url(provider, base_url_value)
         set_provider_setting(provider, PROVIDER_SETTINGS.fetch(:base_url), base_url_value)
+      end
+
+      # Dynamically sets a specific provider's endpoint (Azure OpenAI).
+      #
+      # @param provider [String, Symbol] provider name
+      # @param endpoint_value [String, nil] provider endpoint URL
+      # @return [String, nil] assigned endpoint
+      def set_provider_endpoint(provider, endpoint_value)
+        set_provider_setting(provider, PROVIDER_SETTINGS.fetch(:endpoint), endpoint_value)
       end
 
       # Sets the current LLM provider.
