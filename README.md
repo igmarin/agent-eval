@@ -1,5 +1,8 @@
 # rails-agent-eval
 
+<img width="700" height="427" alt="rails-agent-eval-logo" src="https://github.com/user-attachments/assets/f69b673e-39c5-4768-bbe6-9c00ecc3b4f2" />
+
+
 `rails-agent-eval` is a standalone evaluation engine designed to validate AI agent skills and workflows. It orchestrates side-by-side execution runs (baseline vs. context-hydrated) within isolated Git sandboxes and uses an LLM judge to score the results based on predefined criteria.
 
 This engine is the core validation tool for the [rails-agent-skills](https://github.com/igmarin/rails-agent-skills) library.
