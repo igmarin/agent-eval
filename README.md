@@ -1,5 +1,7 @@
 # Rails Agent Eval 🚀
 
+<img width="800" height="429" alt="agent-eval-logo" src="https://github.com/user-attachments/assets/71688c48-af32-4c6d-87aa-dc2a2865e448" />
+
 *The gold standard for benching AI agent performance in real-world Ruby on Rails environments.*
 
 ---
