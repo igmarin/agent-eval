@@ -6,7 +6,7 @@ require_relative 'write_file'
 require_relative 'run_command'
 require_relative 'argument_parser'
 
-module Evaluator
+module SkillBench
   module Tools
     # Dispatches tool execution based on the tool name, coordinating parsing and invocation.
     class Dispatcher
@@ -35,7 +35,7 @@ module Evaluator
 
         def log_error(exception)
           msg = "#{exception.message}\n#{exception.backtrace.first(5).join("\n")}"
-          if defined?(Rails)
+          if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
             Rails.logger.error(msg)
           elsif !defined?(Minitest)
             warn("Dispatcher Error: #{msg}")

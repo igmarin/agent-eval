@@ -37,7 +37,8 @@ module SkillBench
         history << entry
 
         File.write(history_file, JSON.pretty_generate(history))
-        logger = defined?(Rails) ? Rails.logger : nil
+        logger = defined?(Rails) && Rails.respond_to?(:logger) ? Rails.logger : nil
+
         logger&.info("History recorded to #{history_file}")
         true
       rescue StandardError => e
@@ -113,7 +114,7 @@ module SkillBench
       # @param exception [StandardError]
       def self.log_error(exception)
         msg = "#{exception.message}\n#{exception.backtrace.first(5).join("\n")}"
-        if defined?(Rails)
+        if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
           Rails.logger.error(msg)
         else
           warn("HistoryRecorder Error: #{msg}")

@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
-require 'evaluator/history_recorder'
+require 'skill_bench/history_recorder'
 
 class HistoryRecorderTest < Minitest::Test
   def setup
-    @history_file = Evaluator::HistoryRecorder::HISTORY_FILE
+    @history_file = SkillBench::HistoryRecorder::HISTORY_FILE
   end
 
   def test_load_history_returns_empty_array_when_file_missing
     File.expects(:exist?).with(@history_file).returns(false)
 
-    assert_equal [], Evaluator::HistoryRecorder.load_history
+    assert_equal [], SkillBench::HistoryRecorder.load_history
   end
 
   def test_load_history_returns_empty_array_on_json_parse_error
     File.expects(:exist?).with(@history_file).returns(true)
     File.expects(:read).with(@history_file).returns('invalid json')
 
-    assert_equal [], Evaluator::HistoryRecorder.load_history
+    assert_equal [], SkillBench::HistoryRecorder.load_history
   end
 
   def test_load_history_returns_parsed_json_when_valid
@@ -26,15 +26,15 @@ class HistoryRecorderTest < Minitest::Test
     File.expects(:exist?).with(@history_file).returns(true)
     File.expects(:read).with(@history_file).returns(JSON.generate(data))
 
-    result = Evaluator::HistoryRecorder.load_history
+    result = SkillBench::HistoryRecorder.load_history
 
     assert_equal 1, result.size
     assert_equal 'test', result.first[:source_path]
   end
 
   def test_summarize_handles_empty_tasks
-    assert_equal ({}), Evaluator::HistoryRecorder.summarize([])
-    assert_equal ({}), Evaluator::HistoryRecorder.summarize(nil)
+    assert_equal ({}), SkillBench::HistoryRecorder.summarize([])
+    assert_equal ({}), SkillBench::HistoryRecorder.summarize(nil)
   end
 
   def test_summarize_processes_mixed_input_types
@@ -45,7 +45,7 @@ class HistoryRecorderTest < Minitest::Test
       { judge_score: nil }                                            # Nil
     ]
 
-    summary = Evaluator::HistoryRecorder.summarize(tasks)
+    summary = SkillBench::HistoryRecorder.summarize(tasks)
 
     # 4 tasks.
     # Baseline scores: 50, 60, 0, 0 => sum 110. Avg 110/4 = 27.5
@@ -66,8 +66,8 @@ class HistoryRecorderTest < Minitest::Test
     fixed_path = '/tmp/benchmarks.json'
 
     # Stub PersistenceService methods
-    Evaluator::HistoryRecorder::PersistenceService.stubs(:determine_history_file).returns(fixed_path)
-    Evaluator::HistoryRecorder::PersistenceService.stubs(:load_history).with(fixed_path).returns([])
+    SkillBench::HistoryRecorder::PersistenceService.stubs(:determine_history_file).returns(fixed_path)
+    SkillBench::HistoryRecorder::PersistenceService.stubs(:load_history).with(fixed_path).returns([])
 
     # Expect File.write with the new entry to the fixed path
     File.expects(:write).with(fixed_path, all_of(
@@ -77,12 +77,12 @@ class HistoryRecorderTest < Minitest::Test
                                             regexp_matches(/"improvement": 10.0/)
                                           )).returns(true)
 
-    Evaluator::HistoryRecorder.record(results, source_path: 'skills/test', model: 'gpt-4')
+    SkillBench::HistoryRecorder.record(results, source_path: 'skills/test', model: 'gpt-4')
   end
 
   def test_record_does_nothing_on_failure
     results = { success: false }
     File.expects(:write).never
-    Evaluator::HistoryRecorder.record(results, source_path: 'test', model: 'gpt-4')
+    SkillBench::HistoryRecorder.record(results, source_path: 'test', model: 'gpt-4')
   end
 end

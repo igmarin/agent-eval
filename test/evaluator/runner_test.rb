@@ -3,7 +3,7 @@
 require 'test_helper'
 
 module SkillBench
-  # Tests for Evaluator::Runner
+  # Tests for SkillBench::Runner
   class RunnerTest < Minitest::Test
     def setup
       @tmp_dir = Pathname.new(Dir.mktmpdir('evaluator_runner_test'))

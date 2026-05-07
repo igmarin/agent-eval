@@ -17,7 +17,7 @@ module SkillBench
       HistoryRecorder.expects(:record).with(
         has_entries(success: true),
         source_path: 'skills/patterns/ruby-service-objects',
-        model: Evaluator::Config.model
+        model: SkillBench::Config.model
       )
 
       exit_code = EvaluateCommand.call(
@@ -36,7 +36,7 @@ module SkillBench
       HistoryRecorder.expects(:record).with(
         has_entries(success: true),
         source_path: 'skills/patterns/ruby-service-objects',
-        model: Evaluator::Config.model
+        model: SkillBench::Config.model
       )
 
       exit_code = EvaluateCommand.call(
@@ -106,7 +106,7 @@ module SkillBench
     end
 
     def test_parse_options_returns_false_for_empty_args
-      Evaluator::Services::OptionParserService.stubs(:call).returns(
+      SkillBench::Services::OptionParserService.stubs(:call).returns(
         { success: false, response: { error: { message: 'Missing required option' } } }
       )
       command = EvaluateCommand.new([], stdout: @stdout)
@@ -128,7 +128,7 @@ module SkillBench
     end
 
     def test_parse_options_returns_false_when_option_parser_fails
-      Evaluator::Services::OptionParserService.stubs(:call).returns(
+      SkillBench::Services::OptionParserService.stubs(:call).returns(
         { success: false, response: { error: { message: 'Invalid option' } } }
       )
       command = EvaluateCommand.new(['--invalid'], stdout: @stdout)

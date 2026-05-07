@@ -13,20 +13,20 @@ module SkillBench
     REQUIRED_FILES = %w[
       README.md
       LICENSE
-      bin/evaluate
+      bin/skill-bench
       docs/architecture.md
       docs/testing-guide.md
-      lib/agent_evaluator.rb
-      lib/evaluator/config/applier.rb
-      lib/evaluator/config/defaults.rb
-      lib/evaluator/config/env_overrides.rb
-      lib/evaluator/config/facade_readers.rb
-      lib/evaluator/config/facade_writers.rb
-      lib/evaluator/config/json_loader.rb
-      lib/evaluator/config/store.rb
-      lib/evaluator/package_verifier.rb
-      lib/evaluator/source_path_resolver.rb
-      lib/runner.rb
+      lib/skill_bench.rb
+      lib/skill_bench/config/applier.rb
+      lib/skill_bench/config/defaults.rb
+      lib/skill_bench/config/env_overrides.rb
+      lib/skill_bench/config/facade_readers.rb
+      lib/skill_bench/config/facade_writers.rb
+      lib/skill_bench/config/json_loader.rb
+      lib/skill_bench/config/store.rb
+      lib/skill_bench/package_verifier.rb
+      lib/skill_bench/source_path_resolver.rb
+      lib/skill_bench/runner.rb
     ].freeze
 
     # Verifies that a gem package includes required release files.

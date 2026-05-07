@@ -4,7 +4,7 @@ require 'test_helper'
 
 module SkillBench
   module Tools
-    # Tests for Evaluator::Tools::ReadFile
+    # Tests for SkillBench::Tools::ReadFile
     class ReadFileTest < Minitest::Test
       def test_call_reads_file
         Dir.mktmpdir do |dir|

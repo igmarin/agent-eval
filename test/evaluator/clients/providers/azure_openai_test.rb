@@ -4,13 +4,13 @@ require 'test_helper'
 
 class AzureOpenAITest < Minitest::Test
   def setup
-    Evaluator::Config.reset
+    SkillBench::Config.reset
     @system_prompt = 'You are an assistant'
     @messages = [{ role: 'user', content: 'Hello' }]
   end
 
   def test_base_url_uses_configured_endpoint
-    Evaluator::Config.setup do |config|
+    SkillBench::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_model(:azure, 'gpt-4')
       config.set_provider_endpoint(:azure, 'https://my-resource.openai.azure.com')
@@ -20,11 +20,11 @@ class AzureOpenAITest < Minitest::Test
     client = create_client
 
     assert_equal 'https://my-resource.openai.azure.com', client.send(:base_url)
-    assert_equal "/openai/deployments/gpt-4/chat/completions?api-version=#{Evaluator::Clients::Providers::AzureOpenAI::DEFAULT_API_VERSION}", client.send(:request_path)
+    assert_equal "/openai/deployments/gpt-4/chat/completions?api-version=#{SkillBench::Clients::Providers::AzureOpenAI::DEFAULT_API_VERSION}", client.send(:request_path)
   end
 
   def test_request_path_includes_deployment
-    Evaluator::Config.setup do |config|
+    SkillBench::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_model(:azure, 'gpt-4o')
       config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
@@ -37,7 +37,7 @@ class AzureOpenAITest < Minitest::Test
   end
 
   def test_request_headers_include_api_key
-    Evaluator::Config.setup do |config|
+    SkillBench::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-api-key')
       config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
       config.current_llm_provider = :azure
@@ -51,7 +51,7 @@ class AzureOpenAITest < Minitest::Test
   end
 
   def test_valid_config_with_all_settings
-    Evaluator::Config.setup do |config|
+    SkillBench::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
       config.set_provider_model(:azure, 'gpt-4')
@@ -64,7 +64,7 @@ class AzureOpenAITest < Minitest::Test
   end
 
   def test_valid_config_missing_api_key
-    Evaluator::Config.setup do |config|
+    SkillBench::Config.setup do |config|
       config.set_provider_api_key(:azure, nil)
       config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
       config.set_provider_model(:azure, 'gpt-4')
@@ -77,7 +77,7 @@ class AzureOpenAITest < Minitest::Test
   end
 
   def test_valid_config_missing_endpoint
-    Evaluator::Config.setup do |config|
+    SkillBench::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_endpoint(:azure, nil)
       config.set_provider_model(:azure, 'gpt-4')
@@ -90,7 +90,7 @@ class AzureOpenAITest < Minitest::Test
   end
 
   def test_valid_config_missing_model
-    Evaluator::Config.setup do |config|
+    SkillBench::Config.setup do |config|
       config.set_provider_api_key(:azure, 'test-key')
       config.set_provider_endpoint(:azure, 'https://test.openai.azure.com')
       config.set_provider_model(:azure, nil)
@@ -103,7 +103,7 @@ class AzureOpenAITest < Minitest::Test
   end
 
   def test_config_error_returns_structured_response
-    Evaluator::Config.setup do |config|
+    SkillBench::Config.setup do |config|
       config.set_provider_api_key(:azure, nil)
       config.set_provider_endpoint(:azure, nil)
       config.set_provider_model(:azure, nil)
@@ -122,7 +122,7 @@ class AzureOpenAITest < Minitest::Test
   private
 
   def create_client
-    Evaluator::Clients::Providers::AzureOpenAI.new(
+    SkillBench::Clients::Providers::AzureOpenAI.new(
       system_prompt: @system_prompt,
       messages: @messages
     )

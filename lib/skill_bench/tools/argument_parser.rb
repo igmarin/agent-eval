@@ -2,7 +2,7 @@
 
 require 'json'
 
-module Evaluator
+module SkillBench
   module Tools
     # Parses JSON arguments for tools, handling format errors gracefully.
     class ArgumentParser

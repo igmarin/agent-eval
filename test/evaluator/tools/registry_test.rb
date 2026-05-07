@@ -4,7 +4,7 @@ require 'test_helper'
 
 module SkillBench
   module Tools
-    # Tests for the Evaluator::Tools::Registry
+    # Tests for the SkillBench::Tools::Registry
     class RegistryTest < Minitest::Test
       def test_definitions
         definitions = Registry.definitions

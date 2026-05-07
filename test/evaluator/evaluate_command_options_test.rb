@@ -10,7 +10,7 @@ module SkillBench
     end
 
     def test_parse_options_returns_false_for_empty_args
-      Evaluator::Services::OptionParserService.stubs(:call).returns(
+      SkillBench::Services::OptionParserService.stubs(:call).returns(
         { success: false, response: { error: { message: 'Missing required option' } } }
       )
       command = EvaluateCommand.new([], stdout: @stdout)
@@ -33,7 +33,7 @@ module SkillBench
     end
 
     def test_parse_options_returns_false_when_option_parser_fails
-      Evaluator::Services::OptionParserService.stubs(:call).returns(
+      SkillBench::Services::OptionParserService.stubs(:call).returns(
         { success: false, response: { error: { message: 'Invalid option' } } }
       )
       command = EvaluateCommand.new(['--invalid'], stdout: @stdout)

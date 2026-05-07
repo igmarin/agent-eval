@@ -4,7 +4,7 @@ require 'test_helper'
 
 module SkillBench
   module Tools
-    # Tests for the Evaluator::Tools::ArgumentParser
+    # Tests for the SkillBench::Tools::Tools::ArgumentParser
     class ArgumentParserTest < Minitest::Test
       def test_valid_json
         result = ArgumentParser.call('{"key": "value"}')

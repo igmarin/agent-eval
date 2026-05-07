@@ -13,7 +13,7 @@ module SkillBench
       message = prefix ? "#{prefix}: #{error.message}" : error.message
       backtrace = error.backtrace&.first(5)&.join("\n") || '(no backtrace)'
 
-      if defined?(Rails)
+      if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
         Rails.logger.error(message)
         Rails.logger.error(backtrace)
       else

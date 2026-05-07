@@ -69,7 +69,7 @@ module SkillBench
         message = "Error: #{error.message}"
         backtrace = error.backtrace&.first(5)&.join("\n") || '(no backtrace)'
 
-        logger = defined?(Rails) ? Rails.logger : nil
+        logger = defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger ? Rails.logger : nil
         if logger
           logger.error(message)
           logger.error(backtrace)

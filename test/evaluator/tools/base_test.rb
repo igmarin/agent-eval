@@ -4,7 +4,7 @@ require 'test_helper'
 
 module SkillBench
   module Tools
-    # Tests for Evaluator::Tools::Base
+    # Tests for SkillBench::Tools::Base
     class BaseTest < Minitest::Test
       # Expose protected method for testing
       class TestBase < Base

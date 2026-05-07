@@ -10,8 +10,8 @@ module SkillBench
     end
 
     def test_version_is_accessible
-      assert defined?(Evaluator::VERSION)
-      assert_equal '0.0.1', Evaluator::VERSION
+      assert defined?(SkillBench::VERSION)
+      assert_equal '0.1.0', SkillBench::VERSION
     end
 
     def test_module_is_already_loaded

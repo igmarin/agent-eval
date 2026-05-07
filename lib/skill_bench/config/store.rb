@@ -156,6 +156,15 @@ module SkillBench
         provider_config(provider)[:project_id] = project_id
       end
 
+      # Sets base_url for a specific provider.
+      #
+      # @param provider [Symbol] provider name
+      # @param base_url [String] base URL
+      # @return [String] assigned base_url
+      def set_provider_base_url(provider, base_url)
+        provider_config(provider)[:base_url] = base_url
+      end
+
       private
 
       def provider_config(provider)

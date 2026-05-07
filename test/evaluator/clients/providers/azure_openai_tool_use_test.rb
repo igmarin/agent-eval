@@ -42,7 +42,7 @@ module SkillBench
           }
         }
 
-        stub_request(:post, "https://test-azure.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=#{Evaluator::Clients::Providers::AzureOpenAI::DEFAULT_API_VERSION}")
+        stub_request(:post, "https://test-azure.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=#{SkillBench::Clients::Providers::AzureOpenAI::DEFAULT_API_VERSION}")
           .with(body: hash_including(tools: tools))
           .to_return(
             status: 200,
