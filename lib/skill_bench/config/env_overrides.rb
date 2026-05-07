@@ -48,7 +48,7 @@ module SkillBench
       def call
         { success: true, response: { overrides: provider_overrides } }
       rescue StandardError => e
-        Evaluator::ErrorLogger.log_error(e, 'EnvOverrides Error')
+        SkillBench::ErrorLogger.log_error(e, 'EnvOverrides Error')
         { success: false, response: { error: { message: e.message } } }
       end
 

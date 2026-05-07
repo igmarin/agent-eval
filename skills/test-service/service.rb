@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AgentEval
+module SkillBench
   module Skills
     # Test service skill for demonstration
     class TestService

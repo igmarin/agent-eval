@@ -3,14 +3,14 @@
 require_relative '../base_client'
 require_relative '../provider_registry'
 
-module Evaluator
+module SkillBench
   module Clients
     module Providers
       # Ollama-specific LLM client.
       # Extends BaseClient to interact with an Ollama server (commonly used for open‑source models such as Qwen 3.5).
       # Ollama does not require an API key but requires a model to be configured.
       class Ollama < BaseClient
-        Evaluator::Clients::ProviderRegistry.register(:ollama, self)
+        SkillBench::Clients::ProviderRegistry.register(:ollama, self)
 
         # Returns the provider identifier.
         #
@@ -29,7 +29,7 @@ module Evaluator
           env_url = ENV.fetch('OLLAMA_BASE_URL', nil)
           return env_url unless env_url.to_s.empty?
 
-          config_url = Evaluator::Config.llm_providers_config.dig(:ollama, :base_url)
+          config_url = SkillBench::Config.llm_providers_config.dig(:ollama, :base_url)
           return config_url unless config_url.to_s.empty?
 
           'http://localhost:11434'

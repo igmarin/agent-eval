@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require_relative 'sandbox'
-require_relative '../context_hydrator'
-require_relative '../react_agent'
+require_relative 'context_hydrator'
+require_relative 'react_agent'
 
 module SkillBench
   # Responsible for executing a specific scenario (baseline or context-hydrated)

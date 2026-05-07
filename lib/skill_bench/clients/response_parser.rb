@@ -2,7 +2,7 @@
 
 require 'json'
 
-module Evaluator
+module SkillBench
   module Clients
     # Parses LLM provider responses and extracts messages and usage data.
     # Handles JSON parsing, message extraction, and validation.

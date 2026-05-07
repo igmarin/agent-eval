@@ -2,7 +2,7 @@
 
 require_relative '../config'
 
-module Evaluator
+module SkillBench
   module Clients
     # Service object to load and validate provider configuration.
     class ProviderConfig
@@ -16,7 +16,7 @@ module Evaluator
       def initialize(provider, options)
         @provider = provider.to_sym
         @options = options
-        @config = Evaluator::Config.for_provider(@provider) || {}
+        @config = SkillBench::Config.for_provider(@provider) || {}
       end
 
       # Loads and returns standardized provider configuration.

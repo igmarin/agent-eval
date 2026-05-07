@@ -36,7 +36,7 @@ module SkillBench
         log_parse_error(e)
         failure('Failed to parse config file')
       rescue StandardError => e
-        Evaluator::ErrorLogger.log_error(e, 'JsonLoader Error')
+        SkillBench::ErrorLogger.log_error(e, 'JsonLoader Error')
         failure(e.message)
       end
 

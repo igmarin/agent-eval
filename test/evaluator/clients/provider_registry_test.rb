@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-require_relative '../../../lib/clients/provider_registry'
-require_relative '../../../lib/clients/providers/null_client'
 
 class ProviderRegistryTest < Minitest::Test
   def setup

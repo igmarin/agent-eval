@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-require_relative '../../../../lib/clients/providers/azure_openai'
 
 class AzureOpenAITest < Minitest::Test
   def setup

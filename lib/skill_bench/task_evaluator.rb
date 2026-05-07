@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require_relative 'task_file_reader'
-require_relative '../context_hydrator'
-require_relative '../react_agent'
+require_relative 'context_hydrator'
+require_relative 'react_agent'
 require_relative 'sandbox'
 require_relative 'judge'
 require_relative 'agent_runner'
@@ -92,7 +92,7 @@ module SkillBench
         judge_score: judge_score
       }
     rescue StandardError => e
-      Evaluator::ErrorLogger.log_error(e, 'TaskEvaluator Error')
+      SkillBench::ErrorLogger.log_error(e, 'TaskEvaluator Error')
       { success: false, response: { error: { message: "Error evaluating task: #{e.message}" } } }
     end
   end

@@ -46,7 +46,7 @@ module SkillBench
 
       { success: true, response: { context: xml_context } }
     rescue StandardError => e
-      Evaluator::ErrorLogger.log_error(e, 'Hydration Error')
+      SkillBench::ErrorLogger.log_error(e, 'Hydration Error')
       { success: false, response: { error: { message: e.message } } }
     end
 

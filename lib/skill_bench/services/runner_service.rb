@@ -3,7 +3,7 @@
 require_relative '../models/eval'
 require_relative '../models/skill'
 require_relative '../models/config'
-require_relative '../../clients/all'
+require_relative '../clients/all'
 require_relative 'scoring_service'
 
 module SkillBench
@@ -69,7 +69,7 @@ module SkillBench
       def spawn_agent(eval, skill, provider)
         return { result: 'mock result', status: 'success' } if provider.name == 'mock'
 
-        client_class = Evaluator::Clients::ProviderRegistry.for(provider.runtime)
+        client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime)
         config = provider.merged_config
 
         # Standardize options for the client

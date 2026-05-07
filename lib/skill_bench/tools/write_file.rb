@@ -3,7 +3,7 @@
 require_relative 'base'
 
 # Top-level namespace for the Rails Agent Evaluator.
-module Evaluator
+module SkillBench
   # Contains tool implementations for the evaluator.
   module Tools
     # Handles writing content to a file within the working directory.

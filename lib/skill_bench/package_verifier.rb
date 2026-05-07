@@ -58,7 +58,7 @@ module SkillBench
 
       { success: true, response: { missing_files: [], packaged_files: files } }
     rescue StandardError => e
-      Evaluator::ErrorLogger.log_error(e, 'PackageVerifier Error')
+      SkillBench::ErrorLogger.log_error(e, 'PackageVerifier Error')
       failure(e.message)
     end
 

@@ -3,13 +3,13 @@
 require_relative '../base_client'
 require_relative '../provider_registry'
 
-module Evaluator
+module SkillBench
   module Clients
     module Providers
       # OpenAI-specific LLM client.
       # Inherits common logic from BaseClient.
       class OpenAI < BaseClient
-        Evaluator::Clients::ProviderRegistry.register(:openai, self)
+        SkillBench::Clients::ProviderRegistry.register(:openai, self)
 
         # Returns the provider identifier.
         #

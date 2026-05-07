@@ -2,7 +2,7 @@
 
 require 'faraday'
 
-module Evaluator
+module SkillBench
   module Clients
     # Builds and executes HTTP requests to LLM provider APIs.
     # Encapsulates Faraday connection setup and request execution.

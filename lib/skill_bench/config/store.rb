@@ -7,7 +7,7 @@ module SkillBench
       # Returns the current provider name.
       #
       # @return [Symbol, nil] current provider
-      attr_reader :current_llm_provider
+      attr_accessor :current_llm_provider
 
       # Returns the maximum command execution time.
       #
@@ -17,12 +17,12 @@ module SkillBench
       # Returns the allowed command list.
       #
       # @return [Array<String>, nil] allowed commands
-      attr_reader :allowed_commands
+      attr_accessor :allowed_commands
 
       # Returns provider configuration.
       #
       # @return [Hash, nil] provider configuration by provider name
-      attr_reader :llm_providers_config
+      attr_accessor :llm_providers_config
 
       # Initializes a new configuration store with empty provider settings.
       def initialize
@@ -109,6 +109,51 @@ module SkillBench
       # @return [Hash] assigned provider configuration
       def replace_provider_config(value)
         @llm_providers_config = value
+      end
+
+      # Sets API key for a specific provider.
+      #
+      # @param provider [Symbol] provider name
+      # @param api_key [String] API key value
+      # @return [String] assigned API key
+      def set_provider_api_key(provider, api_key)
+        provider_config(provider)[:api_key] = api_key
+      end
+
+      # Sets model for a specific provider.
+      #
+      # @param provider [Symbol] provider name
+      # @param model [String] model name
+      # @return [String] assigned model
+      def set_provider_model(provider, model)
+        provider_config(provider)[:model] = model
+      end
+
+      # Sets endpoint for a specific provider.
+      #
+      # @param provider [Symbol] provider name
+      # @param endpoint [String] endpoint URL
+      # @return [String] assigned endpoint
+      def set_provider_endpoint(provider, endpoint)
+        provider_config(provider)[:endpoint] = endpoint
+      end
+
+      # Sets location for a specific provider.
+      #
+      # @param provider [Symbol] provider name
+      # @param location [String] location
+      # @return [String] assigned location
+      def set_provider_location(provider, location)
+        provider_config(provider)[:location] = location
+      end
+
+      # Sets project_id for a specific provider.
+      #
+      # @param provider [Symbol] provider name
+      # @param project_id [String] project ID
+      # @return [String] assigned project_id
+      def set_provider_project_id(provider, project_id)
+        provider_config(provider)[:project_id] = project_id
       end
 
       private

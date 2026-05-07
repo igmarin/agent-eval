@@ -2,7 +2,7 @@
 
 require_relative '../base_client'
 
-module Evaluator
+module SkillBench
   module Clients
     module Providers
       # Null Object implementation for unsupported LLM providers.
@@ -35,7 +35,7 @@ module Evaluator
         #
         # @return [Hash]
         def config_error
-          provider = Evaluator::Config.current_llm_provider
+          provider = SkillBench::Config.current_llm_provider
           { success: false, response: { error: { message: "Unsupported or unconfigured LLM provider: '#{provider}'" } } }
         end
 

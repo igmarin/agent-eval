@@ -67,7 +67,7 @@ module SkillBench
       # @param task_result [Hash] Individual task result containing judge scores and diffs
       def print_task_result(task_result)
         score_payload = task_result[:judge_score]
-        parser_class = Evaluator::Services::JudgeScoreParserService
+        parser_class = SkillBench::Services::JudgeScoreParserService
         parsed_judge = parser_class.call(score_payload)
 
         unless parsed_judge[:success]

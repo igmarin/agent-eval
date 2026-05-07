@@ -3,13 +3,13 @@
 require_relative '../base_client'
 require_relative '../provider_registry'
 
-module Evaluator
+module SkillBench
   module Clients
     module Providers
       # DeepSeek-specific LLM client.
       # Uses OpenAI-compatible chat completions API.
       class DeepSeek < BaseClient
-        Evaluator::Clients::ProviderRegistry.register(:deepseek, self)
+        SkillBench::Clients::ProviderRegistry.register(:deepseek, self)
 
         # Returns the provider identifier.
         #

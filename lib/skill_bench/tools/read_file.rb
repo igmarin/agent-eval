@@ -3,7 +3,7 @@
 require_relative 'base'
 require_relative '../error_logger'
 
-module Evaluator
+module SkillBench
   module Tools
     # Handles reading the contents of a file within the working directory.
     class ReadFile < Base
@@ -43,7 +43,7 @@ module Evaluator
       rescue ArgumentError
         raise
       rescue StandardError => e
-        Evaluator::ErrorLogger.log_error(e, 'ReadFile Error')
+        SkillBench::ErrorLogger.log_error(e, 'ReadFile Error')
         "Error reading file: #{e.message}"
       end
 

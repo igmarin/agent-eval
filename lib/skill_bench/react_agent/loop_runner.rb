@@ -27,7 +27,7 @@ module SkillBench
 
         { success: false, response: { error: { message: ReactAgent::MAX_ITERATIONS_REACHED } } }
       rescue StandardError => e
-        Evaluator::ErrorLogger.log_error(e, 'ReactAgent Error')
+        SkillBench::ErrorLogger.log_error(e, 'ReactAgent Error')
         { success: false, response: { error: { message: e.message } } }
       end
     end

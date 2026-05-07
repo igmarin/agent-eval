@@ -38,7 +38,7 @@ module SkillBench
         }
       }
     rescue StandardError => e
-      Evaluator::ErrorLogger.log_error(e, 'TaskFileReader Error')
+      SkillBench::ErrorLogger.log_error(e, 'TaskFileReader Error')
       { success: false, response: { error: { message: "Error reading task files: #{e.message}" } } }
     end
 
@@ -60,7 +60,7 @@ module SkillBench
       content = File.read(file_path)
       { success: true, response: { content: content } }
     rescue StandardError => e
-      Evaluator::ErrorLogger.log_error(e, "TaskFileReader##{filename} Error")
+      SkillBench::ErrorLogger.log_error(e, "TaskFileReader##{filename} Error")
       { success: false, response: { error: { message: "Error reading #{filename}: #{e.message}" } } }
     end
   end

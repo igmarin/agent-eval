@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
-require_relative 'tools/registry'
+require_relative 'tools/base'
+require_relative 'tools/argument_parser'
+require_relative 'tools/read_file'
+require_relative 'tools/write_file'
+require_relative 'tools/run_command'
 require_relative 'tools/dispatcher'
+require_relative 'tools/registry'
 
-module Evaluator
+module SkillBench
   # Provides the definitions and execution logic for tools available to the ReAct agent.
   # Currently supports reading files, writing files, and running shell commands.
   module Tools

@@ -6,7 +6,7 @@ require_relative 'response_parser'
 require_relative 'response_error_handler'
 require_relative 'request_builder'
 
-module Evaluator
+module SkillBench
   module Clients
     # Base class for all LLM provider clients.
     # Orchestrates request execution, response parsing, and error handling.

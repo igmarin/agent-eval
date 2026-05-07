@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-require_relative '../../lib/client' # This is the factory client
-require_relative '../../lib/clients/providers/openai'
-require_relative '../../lib/clients/providers/gemini'
-require_relative '../../lib/clients/providers/ollama'
-require_relative '../../lib/clients/providers/null_client'
 
 module SkillBench
   class ClientFactoryTest < Minitest::Test
@@ -14,9 +9,9 @@ module SkillBench
     def setup
       Config.reset
       # Ensure providers are registered (in case they weren't loaded)
-      Evaluator::Clients::ProviderRegistry.register(:openai, Evaluator::Clients::Providers::OpenAI)
-      Evaluator::Clients::ProviderRegistry.register(:gemini, Evaluator::Clients::Providers::Gemini)
-      Evaluator::Clients::ProviderRegistry.register(:ollama, Evaluator::Clients::Providers::Ollama)
+      SkillBench::Clients::ProviderRegistry.register(:openai, SkillBench::Clients::Providers::OpenAI)
+      SkillBench::Clients::ProviderRegistry.register(:gemini, SkillBench::Clients::Providers::Gemini)
+      SkillBench::Clients::ProviderRegistry.register(:ollama, SkillBench::Clients::Providers::Ollama)
     end
 
     def teardown
@@ -30,7 +25,7 @@ module SkillBench
       end
 
       # Stub the OpenAI provider client class method
-      Evaluator::Clients::Providers::OpenAI.stubs(:call).returns({ success: true, response: { message: { content: 'OpenAI response' } } })
+      SkillBench::Clients::Providers::OpenAI.stubs(:call).returns({ success: true, response: { message: { content: 'OpenAI response' } } })
 
       result = Client.call(system_prompt: 'System', messages: [{ role: 'user', content: 'Hi' }])
 
@@ -47,7 +42,7 @@ module SkillBench
       end
 
       # Stub the Gemini provider client class method
-      Evaluator::Clients::Providers::Gemini.stubs(:call).returns({ success: true, response: { message: { content: 'Gemini response' } } })
+      SkillBench::Clients::Providers::Gemini.stubs(:call).returns({ success: true, response: { message: { content: 'Gemini response' } } })
 
       result = Client.call(system_prompt: 'System', messages: [{ role: 'user', content: 'Hi' }])
 
@@ -62,7 +57,7 @@ module SkillBench
       end
 
       # Stub the Ollama provider client class method
-      Evaluator::Clients::Providers::Ollama.stubs(:call).returns({ success: true, response: { message: { content: 'Ollama response' } } })
+      SkillBench::Clients::Providers::Ollama.stubs(:call).returns({ success: true, response: { message: { content: 'Ollama response' } } })
 
       result = Client.call(system_prompt: 'System', messages: [{ role: 'user', content: 'Hi' }])
 
@@ -86,7 +81,7 @@ module SkillBench
       end
 
       # Stub the OpenAI provider client class method to return an error
-      Evaluator::Clients::Providers::OpenAI.stubs(:call).returns({ success: false, response: { error: { message: 'Provider specific error' } } })
+      SkillBench::Clients::Providers::OpenAI.stubs(:call).returns({ success: false, response: { error: { message: 'Provider specific error' } } })
 
       result = Client.call(system_prompt: 'System', messages: [{ role: 'user', content: 'Hi' }])
 

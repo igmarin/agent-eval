@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AgentEval
+module SkillBench
   module Skills
     # Skill for creating new skills
     class New

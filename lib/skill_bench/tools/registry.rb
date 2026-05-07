@@ -4,7 +4,7 @@ require_relative 'read_file'
 require_relative 'write_file'
 require_relative 'run_command'
 
-module Evaluator
+module SkillBench
   module Tools
     # Registry for all available tools, providing their definitions to the LLM.
     class Registry

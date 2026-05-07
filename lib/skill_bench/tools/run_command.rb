@@ -41,10 +41,10 @@ module SkillBench
       def self.call(command, working_dir_path, container_id = nil)
         argv = command.shellsplit
         base_cmd = argv.first
-        allowed = Evaluator::Config.allowed_commands
+        allowed = SkillBench::Config.allowed_commands
         return "Error: Command '#{base_cmd}' is not permitted. Allowed commands are: #{allowed.join(', ')}." if allowed && !allowed.include?(base_cmd)
 
-        max_time = Evaluator::Config.max_execution_time
+        max_time = SkillBench::Config.max_execution_time
         Timeout.timeout(max_time) do
           stdout_str, stderr_str, status = if container_id
                                              # Execute inside the Docker container

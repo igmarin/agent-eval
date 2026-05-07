@@ -3,13 +3,13 @@
 require_relative '../base_client'
 require_relative '../provider_registry'
 
-module Evaluator
+module SkillBench
   module Clients
     module Providers
       # Anthropic Claude-specific LLM client.
       # Uses the Messages API endpoint with Claude models.
       class Anthropic < BaseClient
-        Evaluator::Clients::ProviderRegistry.register(:anthropic, self)
+        SkillBench::Clients::ProviderRegistry.register(:anthropic, self)
 
         VERSION = '2023-06-01'
 

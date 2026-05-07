@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-require_relative '../../../../lib/clients/providers/ollama'
 
 class OllamaProviderTest < Minitest::Test
   def test_config_error_returns_message

@@ -3,7 +3,7 @@
 require_relative 'providers/null_client'
 require_relative '../error_logger'
 
-module Evaluator
+module SkillBench
   module Clients
     # ProviderRegistry manages registration and lookup of LLM provider classes.
     # Follows the Registry pattern for extensible provider discovery.
@@ -25,7 +25,7 @@ module Evaluator
         # @return [Class] the provider class or NullClient
         def for(name)
           providers.fetch(name) do
-            Evaluator::ErrorLogger.log_error(
+            SkillBench::ErrorLogger.log_error(
               StandardError.new("Unknown provider '#{name}', falling back to NullClient"),
               'ProviderRegistry Warning'
             )

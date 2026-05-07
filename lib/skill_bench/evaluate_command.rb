@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../runner'
+require_relative 'runner'
 require_relative 'services/option_parser_service'
 require_relative 'services/result_printer_service'
 require_relative 'services/output_persistence_service'
@@ -41,10 +41,10 @@ module SkillBench
 
       return 1 unless persist_output?(result)
 
-      Evaluator::HistoryRecorder.record(
+      SkillBench::HistoryRecorder.record(
         result,
         source_path: result[:source_path],
-        model: Evaluator::Config.model
+        model: SkillBench::Config.model
       )
 
       0
@@ -75,7 +75,7 @@ module SkillBench
 
     def run_evaluation
       skill_option = @options[:skill]
-      result = Evaluator::Runner.call(
+      result = SkillBench::Runner.call(
         eval_folder_path: File.expand_path(@options[:eval]),
         skill_path: skill_option ? File.expand_path(skill_option) : nil
       )

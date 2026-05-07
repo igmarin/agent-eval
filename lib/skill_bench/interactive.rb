@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'agent_eval/commands/run'
+require 'skill_bench/commands/run'
 
 # Provides interactive CLI mode using gum-like menu system
 module SkillBench

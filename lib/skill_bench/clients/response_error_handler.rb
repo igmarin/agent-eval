@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Evaluator
+module SkillBench
   module Clients
     # Handles error responses and logging for LLM provider clients.
     # Encapsulates error formatting, logging, and exception handling.

@@ -3,7 +3,7 @@
 require_relative '../base_client'
 require_relative '../provider_registry'
 
-module Evaluator
+module SkillBench
   module Clients
     module Providers
       # Azure OpenAI provider using the OpenAI-compatible API.
@@ -13,7 +13,7 @@ module Evaluator
       #
       # @see https://learn.microsoft.com/en-us/azure/ai-services/openai/reference
       class AzureOpenAI < BaseClient
-        Evaluator::Clients::ProviderRegistry.register(:azure, self)
+        SkillBench::Clients::ProviderRegistry.register(:azure, self)
 
         # Default API version if none is provided.
         DEFAULT_API_VERSION = '2024-02-15-preview'

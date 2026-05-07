@@ -86,21 +86,21 @@ module SkillBench
       #
       # @return [Array<String>, nil] List of allowed commands
       def allowed_commands
-        store.to_h[:allowed_commands]
+        store.allowed_commands
       end
 
       # Returns max execution time from configuration.
       #
       # @return [Integer] Maximum execution time in seconds
       def max_execution_time
-        store.to_h[:max_execution_time] || 30
+        store.max_execution_time || 30
       end
 
       # Returns the current LLM provider name.
       #
       # @return [Symbol] Current provider name
       def current_llm_provider
-        store.to_h[:current_llm_provider] || :openai
+        store.current_llm_provider || :openai
       end
 
       # Sets the current LLM provider.
@@ -108,14 +108,28 @@ module SkillBench
       # @param provider [Symbol] Provider name
       # @return [void]
       def current_llm_provider=(provider)
-        store.to_h[:current_llm_provider] = provider
+        store.current_llm_provider = provider
       end
 
       # Returns LLM providers configuration.
       #
       # @return [Hash] Providers configuration
       def llm_providers_config
-        store.to_h[:llm_providers_config] || {}
+        store.llm_providers_config || {}
+      end
+
+      # Returns API key from configuration.
+      #
+      # @return [String, nil] API key
+      def api_key
+        store.api_key
+      end
+
+      # Returns model from configuration.
+      #
+      # @return [String, nil] Model name
+      def model
+        store.model
       end
     end
   end

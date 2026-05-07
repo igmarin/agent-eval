@@ -14,7 +14,7 @@ module SkillBench
     # The sandbox is initialized as a git repository and optionally wrapped in a Docker container.
     #
     # @param source_dir [String, Pathname] The directory to copy into the sandbox.
-    # @yieldparam sandbox [Evaluator::Sandbox] The sandbox instance.
+    # @yieldparam sandbox [SkillBench::Sandbox] The sandbox instance.
     # @return [Object] The result of the yielded block.
     # @raise [SystemCallError] when file operations or directory creation fails.
     # @raise [RuntimeError] when Docker commands fail.
@@ -31,7 +31,7 @@ module SkillBench
 
     # Executes the sandbox environment setup and yields the sandbox instance.
     #
-    # @yieldparam sandbox [Evaluator::Sandbox] The sandbox instance.
+    # @yieldparam sandbox [SkillBench::Sandbox] The sandbox instance.
     # @return [Object] The result of the yielded block.
     # @raise [SystemCallError] when file operations or directory creation fails.
     # @raise [RuntimeError] when Docker commands fail.

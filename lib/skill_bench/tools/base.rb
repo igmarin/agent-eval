@@ -2,7 +2,7 @@
 
 require 'pathname'
 
-module Evaluator
+module SkillBench
   module Tools
     # Base functionality for tools, providing common utilities like secure path resolution.
     class Base

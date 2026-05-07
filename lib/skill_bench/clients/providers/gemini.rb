@@ -3,7 +3,7 @@
 require_relative '../base_client'
 require_relative '../provider_registry'
 
-module Evaluator
+module SkillBench
   module Clients
     module Providers
       # Google Gemini provider using the OpenAI-compatible Vertex AI endpoint.
@@ -13,7 +13,7 @@ module Evaluator
       #
       # @see https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/openai-compatible-api
       class Gemini < BaseClient
-        Evaluator::Clients::ProviderRegistry.register(:gemini, self)
+        SkillBench::Clients::ProviderRegistry.register(:gemini, self)
 
         # Returns the provider identifier.
         #

@@ -9,12 +9,12 @@ module SkillBench
     # @param skill_path [String, nil] Optional explicit override for the source directory.
     # @return [String, nil] The resolved source path relative to the evaluator repo root, or nil if unmappable.
     # @example Infer a skill source path (NEW format):
-    #   Evaluator::SourcePathResolver.call(
+    #   SkillBench::SourcePathResolver.call(
     #     eval_folder_path: 'evals/skills/rails-code-review/review-order'
     #   )
     #   # => "skills/rails-code-review"
     # @example Infer a skill source path (OLD format, returns category):
-    #   Evaluator::SourcePathResolver.call(
+    #   SkillBench::SourcePathResolver.call(
     #     eval_folder_path: 'evals/skills/code-quality/rails-code-review/review-order'
     #   )
     #   # => "skills/code-quality/rails-code-review"

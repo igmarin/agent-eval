@@ -3,12 +3,12 @@
 require_relative '../base_client'
 require_relative '../provider_registry'
 
-module Evaluator
+module SkillBench
   module Clients
     module Providers
       # OpenCode-specific LLM client.
       class OpenCode < BaseClient
-        Evaluator::Clients::ProviderRegistry.register(:opencode, self)
+        SkillBench::Clients::ProviderRegistry.register(:opencode, self)
 
         # Returns the provider identifier.
         #
