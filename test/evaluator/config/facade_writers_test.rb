@@ -2,7 +2,7 @@
 
 require 'test_helper'
 
-module Evaluator
+module SkillBench
   class Config
     class FacadeWritersTest < Minitest::Test
       def setup
@@ -11,7 +11,6 @@ module Evaluator
       end
 
       def teardown
-        # Clean up by removing the constant if it exists
         Object.send(:remove_const, :Rails) if Object.const_defined?(:Rails)
       end
 

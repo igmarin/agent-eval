@@ -2,9 +2,9 @@
 
 require 'test_helper'
 
-module Evaluator
+module SkillBench
   module Tools
-    # Tests for Evaluator::Tools::WriteFile
+    # Tests for SkillBench::Tools::WriteFile
     class WriteFileTest < Minitest::Test
       def test_call_writes_to_file
         Dir.mktmpdir do |dir|

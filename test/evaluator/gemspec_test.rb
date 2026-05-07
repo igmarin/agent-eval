@@ -2,16 +2,16 @@
 
 require 'test_helper'
 
-module Evaluator
+module SkillBench
   class GemspecTest < Minitest::Test
     def setup
-      gemspec_path = File.expand_path('../../agent-eval.gemspec', __dir__)
+      gemspec_path = File.expand_path('../../ruby-skill-bench.gemspec', __dir__)
       @spec = Gem::Specification.load(gemspec_path)
     end
 
     def test_package_metadata_points_to_project_sources
-      assert_equal 'https://github.com/igmarin/agent-eval', @spec.homepage
-      assert_equal 'https://github.com/igmarin/agent-eval',
+      assert_equal 'https://github.com/igmarin/ruby-skill-bench', @spec.homepage
+      assert_equal 'https://github.com/igmarin/ruby-skill-bench',
                    @spec.metadata['source_code_uri']
       assert_equal 'true', @spec.metadata['rubygems_mfa_required']
     end
@@ -22,8 +22,8 @@ module Evaluator
     end
 
     def test_package_includes_evaluator_lib_files_when_loaded_from_repo_root
-      assert_includes @spec.files, 'lib/evaluator/version.rb'
-      assert_includes @spec.files, 'lib/runner.rb'
+      assert_includes @spec.files, 'lib/skill_bench/version.rb'
+      assert_includes @spec.files, 'lib/skill_bench/runner.rb'
     end
 
     def test_package_includes_readme_linked_docs

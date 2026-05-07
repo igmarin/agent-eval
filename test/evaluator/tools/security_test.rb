@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-require 'tools/write_file'
-require 'tools/read_file'
+require 'skill_bench/tools/write_file'
+require 'skill_bench/tools/read_file'
 
-module Evaluator
+module SkillBench
   module Tools
     class SecurityTest < Minitest::Test
       def setup

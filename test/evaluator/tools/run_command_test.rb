@@ -2,13 +2,13 @@
 
 require 'test_helper'
 
-module Evaluator
+module SkillBench
   module Tools
-    # Tests for Evaluator::Tools::RunCommand
+    # Tests for SkillBench::Tools::RunCommand
     class RunCommandTest < Minitest::Test
       def setup
         # Reset config to allow all commands
-        Evaluator::Config.reset
+        SkillBench::Config.reset
       end
 
       def test_call_executes_command

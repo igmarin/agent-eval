@@ -2,8 +2,8 @@
 
 require 'test_helper'
 
-module Evaluator
-  # Tests for Evaluator::AgentRunner
+module SkillBench
+  # Tests for SkillBench::AgentRunner
   class AgentRunnerTest < Minitest::Test
     def setup
       @full_eval_path = Pathname.new(File.expand_path('../../fixtures/eval_scenario', __dir__))

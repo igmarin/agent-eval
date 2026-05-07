@@ -4,27 +4,48 @@ This guide explains how to run evaluations and how to create new evaluation task
 
 ## Running Evaluations
 
-The primary tool for running evaluations is the `bin/evaluate` script.
-
-Generated eval scenarios are intentionally not bundled with the public repository. Store private/generated scenarios outside tracked paths, for example under the ignored root-level `private-evals/` directory. Public examples must be original or permissively licensed and must document their provenance.
+The primary tool for running evaluations is the `agent-eval` CLI.
 
 ### Basic Usage
 
 To run a specific evaluation task:
 
 ```bash
-bin/evaluate --eval ../private-evals/skills/api/rails-graphql-best-practices/graphql-n-1-prevention-field-auth-and-mu
+bundle exec agent-eval run my-eval --skill=my-skill --provider=openai
+```
+
+### Output Formats
+
+**Human-readable (default):**
+```
+============================================================
+Eval: my-eval
+Skill: my-skill
+Provider: openai
+Status: PASSED
+Score: 0.95
+============================================================
+```
+
+**JSON (CI mode):**
+```bash
+bundle exec agent-eval run my-eval --skill=my-skill --provider=openai --ci
+```
+
+**JUnit XML:**
+```bash
+bundle exec agent-eval run my-eval --skill=my-skill --provider=openai --format=junit
 ```
 
 ### Batch Processing
 
-To run all evaluations within a category:
+To run all evaluations within a directory:
 
 ```bash
-bin/evaluate --eval ../private-evals/skills/api
+bundle exec agent-eval run evals/skills --skill=my-skill --provider=openai
 ```
 
-The evaluator will recursively find all `task.md` files in the directory and execute them in parallel.
+The evaluator will recursively find all task directories and execute them.
 
 ### Overriding Skill Context
 
@@ -82,4 +103,55 @@ Skills are isolated blocks of logic (e.g., a specific API pattern). Evaluations 
 
 Workflows are sequences of skills or complex orchestrations (e.g., the full TDD loop). Evaluations for workflows should focus on the process, the ordering of tasks, and the successful completion of a multi-step objective.
 
-When running a workflow evaluation, ensure the `--eval` path points to a workflow eval directory such as `../private-evals/workflows/`.
+When running a workflow evaluation, ensure the `--eval` path points to a workflow eval directory such as `evals/workflows/`.
+
+## Running the Test Suite
+
+The project uses Minitest with 326+ tests covering:
+- Core evaluation engine (`test/evaluator/`)
+- CLI commands and models (`test/agent_eval/`)
+- Provider clients (`test/evaluator/clients/`)
+- Skill services (`test/skills/`)
+
+```bash
+# Run all tests
+bundle exec rake test
+
+# Run with coverage report
+bundle exec rake test COVERAGE=true
+
+# Run specific test file
+bundle exec ruby -Itest test/agent_eval/commands/skill_new_test.rb
+
+# Run tests matching a pattern
+bundle exec ruby -Itest -e "Dir['test/**/*_test.rb'].each { |f| require f }" -- --name /provider/
+```
+
+### Test Isolation
+
+Tests use temporary directories and restore the original working directory:
+```ruby
+def setup
+  @original_dir = Dir.pwd
+  @tmp_dir = Dir.mktmpdir('test')
+  Dir.chdir(@tmp_dir)
+end
+
+def teardown
+  Dir.chdir(@original_dir)
+  FileUtils.rm_rf(@tmp_dir)
+end
+```
+
+### Environment Variable Handling
+
+Tests that modify ENV must restore original values:
+```ruby
+def test_something
+  original_key = ENV.fetch('OPENAI_API_KEY', nil)
+  ENV.delete('OPENAI_API_KEY')
+  # ... test code ...
+ensure
+  ENV['OPENAI_API_KEY'] = original_key if original_key
+end
+```

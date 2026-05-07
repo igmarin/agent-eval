@@ -4,8 +4,8 @@ require 'test_helper'
 require 'tmpdir'
 require 'fileutils'
 
-module Evaluator
-  # Tests for Evaluator::Config with hierarchical loading.
+module SkillBench
+  # Tests for SkillBench::Config with hierarchical loading.
   class ConfigTest < Minitest::Test
     include Mocha::API
 

@@ -2,13 +2,13 @@
 
 require 'test_helper'
 
-module Evaluator
+module SkillBench
   module Services
     class JudgeScoreParserServiceTest < Minitest::Test
       def test_call_with_json_string
         json_string = '{"baseline_score": 80, "context_score": 90, "reasoning": "Good work"}'
 
-        result = Evaluator::Services::JudgeScoreParserService.call(json_string)
+        result = SkillBench::Services::JudgeScoreParserService.call(json_string)
 
         assert result[:success]
         assert_equal 80, result[:response]['baseline_score']
@@ -25,7 +25,7 @@ module Evaluator
 }
 ```'
 
-        result = Evaluator::Services::JudgeScoreParserService.call(json_string)
+        result = SkillBench::Services::JudgeScoreParserService.call(json_string)
 
         assert result[:success]
         assert_equal 75, result[:response]['baseline_score']
@@ -36,7 +36,7 @@ module Evaluator
       def test_call_with_hash_input
         hash_input = { 'baseline_score' => 70, 'context_score' => 80, 'reasoning' => 'Needs improvement' }
 
-        result = Evaluator::Services::JudgeScoreParserService.call(hash_input)
+        result = SkillBench::Services::JudgeScoreParserService.call(hash_input)
 
         assert result[:success]
         assert_equal 70, result[:response]['baseline_score']
@@ -47,7 +47,7 @@ module Evaluator
       def test_call_with_symbol_keys_hash
         hash_input = { baseline_score: 70, context_score: 80, reasoning: 'Needs improvement' }
 
-        result = Evaluator::Services::JudgeScoreParserService.call(hash_input)
+        result = SkillBench::Services::JudgeScoreParserService.call(hash_input)
 
         assert result[:success]
         assert_equal 70, result[:response]['baseline_score']
@@ -58,28 +58,28 @@ module Evaluator
       def test_call_with_invalid_json_string
         invalid_json = '{"invalid": json}'
 
-        result = Evaluator::Services::JudgeScoreParserService.call(invalid_json)
+        result = SkillBench::Services::JudgeScoreParserService.call(invalid_json)
 
         refute result[:success]
         assert_includes result[:response][:error][:message], 'Failed to parse judge score'
       end
 
       def test_call_with_nil_input
-        result = Evaluator::Services::JudgeScoreParserService.call(nil)
+        result = SkillBench::Services::JudgeScoreParserService.call(nil)
 
         refute result[:success]
         assert_includes result[:response][:error][:message], 'Failed to parse judge score'
       end
 
       def test_call_with_empty_string
-        result = Evaluator::Services::JudgeScoreParserService.call('')
+        result = SkillBench::Services::JudgeScoreParserService.call('')
 
         refute result[:success]
         assert_includes result[:response][:error][:message], 'Failed to parse judge score'
       end
 
       def test_call_with_non_json_string
-        result = Evaluator::Services::JudgeScoreParserService.call('just plain text')
+        result = SkillBench::Services::JudgeScoreParserService.call('just plain text')
 
         refute result[:success]
         assert_includes result[:response][:error][:message], 'Failed to parse judge score'
