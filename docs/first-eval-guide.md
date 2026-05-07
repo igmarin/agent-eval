@@ -47,8 +47,18 @@ Edit `evals/my-first-eval/task.md` to define your evaluation task.
 ## Step 5: Run the Eval
 
 ```bash
-agent-eval run my-first-eval --skill=my-service --provider=openai
+bundle exec agent-eval run my-first-eval --skill=my-service --provider=openai
 ```
+
+**Available Providers:**
+- `openai` — OpenAI GPT models
+- `anthropic` — Anthropic Claude
+- `gemini` — Google Gemini
+- `azure` — Azure OpenAI
+- `ollama` — Local Ollama models
+- `groq` — Groq fast inference
+- `deepseek` — DeepSeek models
+- `opencode` — OpenCode platform
 
 ## Step 6: Check Results
 

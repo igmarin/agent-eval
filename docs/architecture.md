@@ -20,6 +20,14 @@ The Rails Agent Evaluator is designed to provide a reproducible and isolated env
 - Orchestrates parallel execution using the `parallel` gem.
 - Aggregates results and generates reports.
 
+### `AgentEval::Commands`
+
+CLI command handlers for the `agent-eval` executable:
+- `Init` — Creates `.agent-eval.yml` configuration
+- `SkillNew` — Scaffolds new skills with templates
+- `EvalNew` — Creates evaluation scenarios
+- `Run` — Executes evaluations
+
 ### `Evaluator::Sandbox`
 
 - Uses `Dir.mktmpdir` for isolation.
@@ -37,6 +45,19 @@ The Rails Agent Evaluator is designed to provide a reproducible and isolated env
 - Implements the **Template Method** pattern.
 - Handles Faraday connection setup and timeouts.
 - Centralizes error logging and response normalization.
+- Delegates to `ResponseParser`, `ResponseErrorHandler`, and `RequestBuilder`
+
+### `AgentEval::OutputFormatter`
+
+- Formats results as human-readable text, JSON, or JUnit XML
+- Escapes XML output to prevent injection
+- Provides exit codes for CI/CD integration
+
+### `Evaluator::ErrorLogger`
+
+- Shared error logging module for all service objects
+- Logs error message and full backtrace
+- Uses `Rails.logger` when available, falls back to `warn`
 
 ## Data Structures
 
