@@ -4,78 +4,57 @@ require 'optparse'
 
 module SkillBench
   module Services
-    # Service object for parsing CLI arguments using OptionParser.
-    # Provides standardized error handling and response format for command-line options.
+    # Parses CLI arguments for the EvaluateCommand using Ruby's OptionParser.
+    # Provides standardized error handling for invalid flags and missing arguments.
     class OptionParserService
-      PARSE_ERROR = 'Failed to parse command line options'
-
-      # Parses CLI arguments into a standardized options hash.
+      # Parses command-line options into a hash.
       #
-      # @param argv [Array<String>] Raw CLI arguments from command line
-      # @return [Hash] Standardized response hash with format:
-      #   - { success: true, response: Hash } on success, containing parsed options
-      #   - { success: false, response: { error: { message: String } } } on failure
-      # @raise [SystemExit] when help flag (-h/--help) is used (normal OptionParser behavior)
-      # @example Parse valid arguments
-      #   result = OptionParserService.call(['-e', 'evals/test', '-o', 'output.json'])
-      #   # => { success: true, response: { eval: 'evals/test', output: 'output.json' } }
-      # @example Parse invalid arguments
-      #   result = OptionParserService.call(['--invalid-flag'])
-      #   # => { success: false, response: { error: { message: 'invalid option: --invalid-flag' } } }
+      # @param argv [Array<String>] Raw CLI arguments.
+      # @return [Hash] Result envelope with parsed options or error message.
       def self.call(argv)
         new(argv).call
       end
 
-      # Initializes a new option parser instance.
-      #
-      # @param argv [Array<String>] Raw CLI arguments from command line
+      # @param argv [Array<String>] Raw CLI arguments.
       def initialize(argv)
         @argv = argv
-        @options = {}
       end
 
-      # Parses the CLI arguments and returns a standardized response.
+      # Parses the arguments and returns a result hash.
       #
-      # @return [Hash] Standardized response hash with format:
-      #   - { success: true, response: Hash } on success, containing parsed options
-      #   - { success: false, response: { error: { message: String } } } on failure
-      # @raise [OptionParser::ParseError] when invalid options are provided (handled internally)
+      # @return [Hash] Result envelope with parsed options or error message.
       def call
-        parser = create_option_parser
-        parser.parse!(@argv)
-        { success: true, response: @options }
+        options = {}
+
+        parser(options).parse!(@argv)
+
+        { success: true, response: options }
       rescue OptionParser::ParseError => e
         { success: false, response: { error: { message: e.message } } }
       end
 
       private
 
-      # Creates and configures the OptionParser instance with all supported options.
-      #
-      # @return [OptionParser] Configured parser instance
-      def create_option_parser
+      def parser(options)
         OptionParser.new do |opts|
-          opts.banner = 'Usage: evaluate [options]'
-          define_options(opts)
-        end
-      end
+          opts.banner = 'Usage: skill-bench [options]'
 
-      # Defines the CLI options for the parser.
-      #
-      # @param opts [OptionParser] The OptionParser instance.
-      def define_options(opts)
-        opts.on('-e', '--eval FOLDER',
-                'Path to the eval folder (for example evals/skills/... or evals/workflows/...)') do |eval_path|
-          @options[:eval] = eval_path
-        end
+          opts.on('-e', '--eval FOLDER', 'Path to the eval folder') do |eval_path|
+            options[:eval] = eval_path
+          end
 
-        opts.on('-s', '--skill FOLDER',
-                'Optional override for the source skill/workflow folder to hydrate from') do |skill_path|
-          @options[:skill] = skill_path
-        end
+          opts.on('-s', '--skill FOLDER', 'Optional override for the source skill folder') do |skill_path|
+            options[:skill] = skill_path
+          end
 
-        opts.on('-o', '--output FILE', 'Path to save the JSON report') do |output_path|
-          @options[:output] = output_path
+          opts.on('-o', '--output FILE', 'Path to save the JSON report') do |output_path|
+            options[:output] = output_path
+          end
+
+          opts.on('-h', '--help', 'Prints this help') do
+            puts opts
+            exit
+          end
         end
       end
     end
