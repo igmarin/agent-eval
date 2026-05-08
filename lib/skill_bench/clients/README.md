@@ -9,6 +9,7 @@ The `lib/skill_bench/clients` directory is the **Intelligence Bridge** of the Sk
 The client layer is built on the **Template Method pattern** and a **Decoupled Provider Registry**, ensuring that adding a new AI backend requires zero changes to the core evaluation engine.
 
 ### System Flow
+
 ```mermaid
 graph TD
     %% Nodes
@@ -42,6 +43,7 @@ graph TD
 ```
 
 ### Core Components
+
 - **`BaseClient`**: The abstract backbone. It handles connection management (Faraday), JSON orchestration, standardized error recovery, and performance logging.
 - **`ProviderRegistry`**: The discovery mechanism. It allows providers to self-register using unique symbols, enabling dynamic selection at runtime.
 - **`RequestBuilder`**: Handles Faraday connection setup with configurable timeouts (default: 120s for LLM calls).
@@ -70,6 +72,7 @@ graph TD
 ## 🔌 Configuration & Setup
 
 ### Environment Variable Mapping
+
 The system supports direct injection via environment variables for rapid prototyping:
 
 - **Azure OpenAI**: `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_VERSION`
@@ -77,6 +80,7 @@ The system supports direct injection via environment variables for rapid prototy
 - **Anthropic**: `ANTHROPIC_API_KEY`
 
 ### Registry Key Alignment
+
 > [!IMPORTANT]
 > When using the `SkillBench::Config.set_provider(:key)` method, ensure the key matches the registry. Note that for Azure, the key is simply `:azure`.
 
@@ -106,9 +110,11 @@ Every client, regardless of its internal complexity, guarantees a standard respo
 1. **Subclass `BaseClient`**: Create `lib/skill_bench/clients/providers/my_ai.rb`.
 2. **Implement Methods**: Define `base_url`, `request_path`, `extract_message`, `valid_config?`, and `request_headers` (override to inject auth headers).
 3. **Register It**:
+
    ```ruby
    SkillBench::Clients::ProviderRegistry.register(:my_ai, self)
    ```
+
 4. **Load It**: Ensure it is required in the main `lib/skill_bench/client.rb` or your entry point.
 
 ---
