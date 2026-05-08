@@ -64,8 +64,8 @@ module SkillBench
       failure_xml = result[:pass] ? '' : "<failure message=\"Score: #{score}\">Eval #{status}</failure>"
       <<~XML
         <?xml version="1.0"?>
-        <testsuite name="AgentEval" tests="1" failures="#{result[:pass] ? 0 : 1}">
-          <testcase name="#{eval_name}" classname="AgentEval">
+        <testsuite name="SkillBench" tests="1" failures="#{result[:pass] ? 0 : 1}">
+          <testcase name="#{eval_name}" classname="SkillBench">
             #{failure_xml}
           </testcase>
         </testsuite>

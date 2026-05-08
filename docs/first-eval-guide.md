@@ -1,43 +1,45 @@
-# Agent Eval - 5 Minute First Eval Guide
+# SkillBench - 5 Minute First Eval Guide
 
-Get started with Agent Eval in 5 minutes.
+Get started with Ruby Skill Bench in 5 minutes.
 
 ## Prerequisites
-- Ruby 3.0+
+- Ruby 3.1+
 - Bundler
 
 ## Step 1: Installation
 
 Add to your Gemfile:
 ```ruby
-gem 'agent-eval'
+gem 'ruby-skill-bench'
 ```
 
 Or install globally:
 ```bash
-gem install agent-eval
+gem install ruby-skill-bench
 ```
 
 ## Step 2: Initialize Configuration
 
 ```bash
-agent-eval init --rails
+skill-bench init --openai
 ```
 
-This creates `.agent-eval.yml` with default providers and Rails-specific settings.
+This creates `skill-bench.json` with the OpenAI provider config. Use `--force` to overwrite.
+
+**Available providers:** `--openai`, `--anthropic`, `--gemini`, `--ollama`, `--azure`, `--groq`, `--deepseek`, `--opencode`
 
 ## Step 3: Create Your First Skill
 
 ```bash
-agent-eval skill new my-service --mode=rails --template=service_object
+skill-bench skill new my-service --mode=rails --template=service_object
 ```
 
-This creates `skills/my-service/service.rb` with a Rails service object template.
+This creates `skills/my-service/SKILL.md` with a Rails service object template.
 
 ## Step 4: Create an Eval
 
 ```bash
-agent-eval eval new my-first-eval --runtime=rails
+skill-bench eval new my-first-eval --runtime=rails
 ```
 
 This creates `evals/my-first-eval/` with `task.md` and `criteria.json`.
@@ -47,10 +49,12 @@ Edit `evals/my-first-eval/task.md` to define your evaluation task.
 ## Step 5: Run the Eval
 
 ```bash
-bundle exec agent-eval run my-first-eval --skill=my-service --provider=openai
+skill-bench run my-first-eval --skill=my-service
 ```
 
-**Available Providers:**
+Provider is read from `skill-bench.json` — no `--provider` flag needed.
+
+**Available Providers (configured via `skill-bench init`):**
 - `openai` — OpenAI GPT models
 - `anthropic` — Anthropic Claude
 - `gemini` — Google Gemini
@@ -69,13 +73,12 @@ The output shows:
 
 For CI mode:
 ```bash
-agent-eval run my-first-eval --skill=my-service --provider=openai --ci
+skill-bench run my-first-eval --skill=my-service --ci
 ```
 
 This outputs JSON/JUnit XML for CI/CD integration.
 
 ## Next Steps
 
-- Explore `lib/agent_eval/rails/skill_templates.rb` for more Rails templates
-- Read `plans/agent-eval-architecture.md` for architecture details
-- Run `agent-eval list skills|evals|providers` to see available resources
+- Explore skill templates with `skill-bench skill new --help`
+- Read `docs/architecture.md` for architecture details

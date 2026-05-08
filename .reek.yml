@@ -28,60 +28,64 @@ directories:
 detectors:
   Attribute:
     exclude:
+      - "SkillBench::Config"
       - "SkillBench::Config::Store"
   InstanceVariableAssumption:
     exclude:
-      - "SkillBench::Clients::Providers::OpenAI"
-      - "SkillBench::Clients::Providers::Gemini"
-      - "SkillBench::Clients::Providers::Ollama"
       - "SkillBench::Clients::Providers::Anthropic"
       - "SkillBench::Clients::Providers::AzureOpenAI"
       - "SkillBench::Clients::Providers::DeepSeek"
+      - "SkillBench::Clients::Providers::Gemini"
       - "SkillBench::Clients::Providers::Groq"
+      - "SkillBench::Clients::Providers::Ollama"
+      - "SkillBench::Clients::Providers::OpenAI"
       - "SkillBench::Clients::Providers::OpenCode"
       - "SkillBench::Config::Store"
   MissingSafeMethod:
     enabled: false
   ControlParameter:
     exclude:
-      - "SkillBench::Tools::Base"
+      - "SkillBench::Commands::Run#validate_api_key"
+      - "SkillBench::ContextHydrator#initialize"
       - "SkillBench::EvaluateCommand#print_parse_error"
       - "SkillBench::OutputFormatter#self.format"
-      - "SkillBench::Commands::Run#validate_api_key"
+      - "SkillBench::Tools::Base"
   DuplicateMethodCall:
     exclude:
-      - "SkillBench::Client#call"
-      - "SkillBench::ContextHydrator#call"
-      - "SkillBench::ReactAgent#call"
-      - "SkillBench::Runner#call"
       - "SkillBench::AgentRunner#print_header"
-      - "SkillBench::Config#load_and_merge_json"
-      - "SkillBench::Clients::Providers::Gemini#initialize"
+      - "SkillBench::CLI#call"
+      - "SkillBench::Client#call"
       - "SkillBench::Clients::BaseClient#execute_request"
-      - "SkillBench::Tools::Base#verify_component_safety!"
-      - "SkillBench::Tools::WriteFile#self.call"
-      - "SkillBench::OutputFormatter#self.format_human"
-      - "SkillBench::OutputFormatter#self.format_junit"
-      - "SkillBench::Migration::ProviderMigrator#self.migrate"
-      - "SkillBench::Commands::Run"
-      - "SkillBench::Models::Config#self.load"
-      - "SkillBench::Services::RunnerService#spawn_agent"
+      - "SkillBench::Clients::Providers::Gemini#initialize"
       - "SkillBench::Clients::RequestBuilder#self.build_connection"
       - "SkillBench::Clients::ResponseErrorHandler#self.failure_response"
+      - "SkillBench::Clients::ResponseErrorHandler#self.log_error"
       - "SkillBench::Clients::ResponseParser#self.extract_openai_message"
       - "SkillBench::Clients::ResponseParser#self.parse_body"
+      - "SkillBench::Commands::Run"
+      - "SkillBench::Config#load_and_merge_json"
+      - "SkillBench::ContextHydrator#call"
       - "SkillBench::ErrorLogger#log_error"
-      - "SkillBench::Clients::ResponseErrorHandler#self.log_error"
       - "SkillBench::HistoryRecorder::PersistenceService#self.log_error"
-      - "SkillBench::Tools::Dispatcher#log_error"
+      - "SkillBench::Migration::ProviderMigrator#self.migrate"
+      - "SkillBench::Models::Config#self.load"
+      - "SkillBench::OutputFormatter#self.format_human"
+      - "SkillBench::OutputFormatter#self.format_junit"
+      - "SkillBench::ReactAgent#call"
+      - "SkillBench::Runner#call"
+      - "SkillBench::Services::RunnerService#spawn_agent"
       - "SkillBench::Services::ScoringService#call"
       - "SkillBench::Services::ScoringService#error_score"
+      - "SkillBench::Tools::Base#verify_component_safety!"
+      - "SkillBench::Tools::Dispatcher#log_error"
+      - "SkillBench::Tools::WriteFile#self.call"
   UncommunicativeVariableName:
     accept:
       - e
       - f
       - id
       - t
+      - v
   TooManyInstanceVariables:
     max_instance_variables: 6
     exclude:
@@ -102,18 +106,35 @@ detectors:
       - "SkillBench::Tools"
   FeatureEnvy:
     exclude:
-      - "SkillBench::ContextHydrator#build_xml"
+      - "SkillBench::CLI#call"
+      - "SkillBench::CLI#handle_eval"
+      - "SkillBench::CLI#handle_eval_new"
+      - "SkillBench::CLI#handle_run"
+      - "SkillBench::CLI#handle_skill"
+      - "SkillBench::CLI#handle_skill_new"
+      - "SkillBench::CLI#print_result"
+      - "SkillBench::Cli::EvalCommand#handle_new"
+      - "SkillBench::Cli::InitCommand#build_parser"
+      - "SkillBench::Cli::RunCommand#build_parser"
+      - "SkillBench::Cli::SkillCommand#handle_new"
+      - "SkillBench::Clients::BaseClient#config_error"
       - "SkillBench::Clients::BaseClient#handle_response"
-      - "SkillBench::Clients::Providers::Gemini#config_error"
       - "SkillBench::Clients::Providers::Anthropic#config_error"
+      - "SkillBench::Clients::Providers::Anthropic#translate_single_message"
       - "SkillBench::Clients::Providers::AzureOpenAI#config_error"
+      - "SkillBench::Clients::Providers::Gemini#config_error"
+      - "SkillBench::ContextHydrator#build_xml"
+      - "SkillBench::EvaluateCommand#safe_expand_path"
+      - "SkillBench::HistoryRecorder::HistoryFile#write"
+      - "SkillBench::HistoryRecorder::HistoryPathResolver#contained?"
+      - "SkillBench::Judge#call"
       - "SkillBench::Models::Config#find_provider"
       - "SkillBench::Models::Config#providers"
+      - "SkillBench::Sandbox#copy_tree"
+      - "SkillBench::Services::OptionParserService#parser"
       - "SkillBench::Services::RunnerService#spawn_agent"
-      - "SkillBench::Clients::BaseClient#config_error"
       - "SkillBench::Services::ScoringService#load_thresholds"
       - "SkillBench::Services::ScoringService#test_pass_rate"
-      - "SkillBench::EvaluateCommand#safe_expand_path"
   BooleanParameter:
     exclude:
       - "SkillBench::Commands::Init#self.run"
@@ -121,19 +142,34 @@ detectors:
     enabled: false
   NilCheck:
     exclude:
-      - "SkillBench::ReactAgent#call"
+      - "SkillBench::CLI#handle_eval"
+      - "SkillBench::CLI#handle_skill"
+      - "SkillBench::Cli::EvalCommand#call"
+      - "SkillBench::Cli::SkillCommand#call"
       - "SkillBench::Clients::BaseClient#handle_response"
-      - "SkillBench::SourcePathResolver#self.call"
+      - "SkillBench::Clients::BaseClient#missing_config_keys"
+      - "SkillBench::Clients::Providers::Anthropic#parse_tool_arguments"
+      - "SkillBench::Clients::ResponseParser#self.valid_message?"
+      - "SkillBench::ContextHydrator#initialize"
       - "SkillBench::EvaluateCommand#call"
       - "SkillBench::EvaluateCommand#print_task_result"
       - "SkillBench::HistoryRecorder#normalize_score"
       - "SkillBench::HistoryRecorder#self.summarize"
-      - "SkillBench::Clients::Providers::Anthropic#parse_tool_arguments"
-      - "SkillBench::Clients::BaseClient#missing_config_keys"
-      - "SkillBench::Clients::ResponseParser#self.valid_message?"
+      - "SkillBench::HistoryRecorder::HistoryPathResolverTest#with_env"
+      - "SkillBench::Models::Config#to_provider"
+      - "SkillBench::ReactAgent#call"
+      - "SkillBench::SourcePathResolver#self.call"
+      - "SkillBench::Tools::RunCommand#self.call"
   NestedIterators:
     exclude:
+      - "SkillBench::CLI#handle_eval_new"
+      - "SkillBench::CLI#handle_run"
+      - "SkillBench::CLI#handle_skill_new"
+      - "SkillBench::Cli::EvalCommand#handle_new"
+      - "SkillBench::Cli::RunCommand#build_parser"
+      - "SkillBench::Cli::SkillCommand#handle_new"
       - "SkillBench::EvaluateCommand#parse_options"
+      - "SkillBench::Services::OptionParserService#parser"
   RepeatedConditional:
     exclude:
       - "SkillBench::OutputFormatter"
@@ -147,9 +183,9 @@ detectors:
     max_params: 5
   ManualDispatch:
     exclude:
-      - "SkillBench::Models::Config#self.load"
-      - "SkillBench::HistoryRecorder::PersistenceService#self.record"
-      - "SkillBench::HistoryRecorder::PersistenceService#self.log_error"
-      - "SkillBench::ErrorLogger#log_error"
       - "SkillBench::Clients::ResponseErrorHandler#self.log_error"
+      - "SkillBench::ErrorLogger#log_error"
+      - "SkillBench::HistoryRecorder::PersistenceService#self.log_error"
+      - "SkillBench::HistoryRecorder::PersistenceService#self.record"
+      - "SkillBench::Models::Config#self.load"
       - "SkillBench::Tools::Dispatcher#log_error"

@@ -2,6 +2,7 @@
 
 require 'fileutils'
 require 'tmpdir'
+require 'open3'
 
 module SkillBench
   # Manages isolated sandbox environments for running agent evaluations.
@@ -38,11 +39,11 @@ module SkillBench
     def run
       Dir.mktmpdir('evaluator_sandbox_') do |sandbox_dir|
         @path = sandbox_dir
-        FileUtils.cp_r(Dir.glob(File.join(@source_dir, '*')), sandbox_dir)
+        copy_source_files(sandbox_dir)
 
         setup_git
 
-        start_container
+        start_container if docker_available?
         begin
           yield self
         ensure
@@ -57,13 +58,16 @@ module SkillBench
     # @return [String] The git diff, or a message indicating no changes.
     # @raise [SystemCallError] when git commands fail.
     def self.capture_diff(sandbox_dir)
-      # Check if we are in a git repo and have at least one commit
-      return 'No code changes made.' unless File.directory?(File.join(sandbox_dir, '.git'))
+      sandbox_path = File.realpath(sandbox_dir)
+      tmp_prefix = File.realpath(Dir.tmpdir) + File::SEPARATOR
+      raise "Sandbox directory #{sandbox_dir} is outside temp directory" unless sandbox_path.start_with?(tmp_prefix)
 
-      raise "Failed to stage changes in #{sandbox_dir}" unless system('git', 'add', '.', chdir: sandbox_dir)
+      return 'No code changes made.' unless File.directory?(File.join(sandbox_path, '.git'))
 
-      diff, status = Open3.capture2('git', 'diff', '--cached', chdir: sandbox_dir)
-      raise "Failed to capture diff in #{sandbox_dir}" unless status.success?
+      raise "Failed to stage changes in #{sandbox_path}" unless system('git', 'add', '.', chdir: sandbox_path)
+
+      diff, status = Open3.capture2('git', 'diff', '--cached', chdir: sandbox_path)
+      raise "Failed to capture diff in #{sandbox_path}" unless status.success?
 
       diff.strip.empty? ? 'No code changes made.' : diff
     end
@@ -84,11 +88,67 @@ module SkillBench
       end
     end
 
+    # Copies source files into the sandbox, including dotfiles.
+    # Validates symlinks to prevent path traversal.
+    #
+    # @param sandbox_dir [String] The destination sandbox directory.
+    # @raise [RuntimeError] when a symlink points outside the source directory.
+    def copy_source_files(sandbox_dir)
+      source_real = File.realpath(@source_dir)
+      copy_tree(@source_dir, sandbox_dir, source_real)
+    end
+
+    def copy_tree(src_dir, dst_dir, source_real)
+      Dir.entries(src_dir).each do |entry|
+        next if %w[. ..].include?(entry)
+
+        src = File.join(src_dir, entry)
+        dst = File.join(dst_dir, entry)
+
+        if File.symlink?(src)
+          real = File.realpath(src)
+          raise "Symlink #{entry} points outside source directory" unless real.start_with?("#{source_real}/")
+
+          copy_item(real, dst, source_real)
+        elsif File.directory?(src)
+          copy_item(src, dst, source_real)
+        else
+          FileUtils.cp(src, dst)
+        end
+      end
+    end
+
+    def copy_item(src, dst, source_real)
+      FileUtils.mkdir_p(dst)
+      if File.directory?(src)
+        copy_tree(src, dst, source_real)
+      else
+        FileUtils.cp(src, dst)
+      end
+    end
+
+    # Checks if Docker is available and the sandbox Dockerfile exists.
+    #
+    # @return [Boolean] true if Docker is available, false otherwise.
+    def docker_available?
+      docker_dir = File.expand_path('docker', __dir__)
+      return false unless File.directory?(docker_dir)
+
+      _stdout, _stderr, status = Open3.capture3('docker', 'info')
+      status.success?
+    rescue Errno::ENOENT
+      false
+    end
+
+    # Starts a Docker container for isolated command execution.
+    # Builds the image only if it does not already exist.
+    #
+    # @raise [RuntimeError] when the Docker image cannot be built or the container fails to start.
     def start_container
       image_name = 'evaluator-sandbox'
       docker_dir = File.expand_path('docker', __dir__)
 
-      # Build image if missing
+      # Build image (Docker layer cache handles no-op builds)
       raise "Failed to build Docker image #{image_name}" unless system('docker', 'build', '-t', image_name, docker_dir, '--quiet')
 
       # Start a detached container mounting the sandbox dir to /sandbox

@@ -10,10 +10,9 @@ module SkillBench
       # Migrate providers to YAML config file
       # @param providers [Hash] Providers to migrate (name => config hash)
       # @param yaml_path [String] Path to YAML config file (default: .agent-eval.yml)
-      # @return [void]
       def self.migrate(providers, yaml_path = '.agent-eval.yml')
         existing = if File.exist?(yaml_path)
-                     YAML.safe_load_file(yaml_path, permitted_classes: [], aliases: true) || {}
+                     YAML.safe_load_file(yaml_path, permitted_classes: [], aliases: false) || {}
                    else
                      {}
                    end

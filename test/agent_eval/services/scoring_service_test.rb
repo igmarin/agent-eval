@@ -22,7 +22,7 @@ module SkillBench
       def test_call_returns_pass_when_score_above_threshold
         result = ScoringService.call(
           eval: @eval,
-          result: { status: 'success' },
+          result: { status: :success },
           skill_name: 'test-skill',
           provider_name: 'mock'
         )
@@ -34,26 +34,27 @@ module SkillBench
       end
 
       def test_call_returns_fail_when_result_status_is_error
-        old_stderr = $stderr
-        $stderr = StringIO.new
         result = ScoringService.call(
           eval: @eval,
-          result: { status: 'error', result: 'failed' },
+          result: {
+            status: :error,
+            test_results: [{ status: :failed }, { status: :failed }],
+            error_count: 1,
+            total_count: 1
+          },
           skill_name: 'test-skill',
           provider_name: 'mock'
         )
-        $stderr = old_stderr
 
-        # ScoringService currently returns pass: true for all cases (stub implementation)
-        # This test documents expected behavior once real scoring is implemented
-        assert result.key?(:pass)
+        refute result[:pass]
+        assert_in_delta 0.3, result[:score], 0.01
         assert_equal 'test-eval', result[:eval_name]
       end
 
       def test_call_includes_eval_metadata
         result = ScoringService.call(
           eval: @eval,
-          result: { status: 'success' },
+          result: { status: :success },
           skill_name: 'my-skill',
           provider_name: 'openai'
         )

@@ -1,49 +1,52 @@
 # frozen_string_literal: true
 
+require 'json'
 require_relative '../models/eval'
 require_relative '../models/skill'
 require_relative '../models/config'
+require_relative '../models/provider'
 require_relative '../clients/all'
 require_relative 'scoring_service'
+require_relative 'skill_resolver'
 
 module SkillBench
   module Services
     # Orchestrates the execution of an eval
     class RunnerService
+      # Mock provider struct for testing without real LLM calls.
+      MOCK_PROVIDER = Struct.new(:name, :runtime, :llm, :merged_config)
+      private_constant :MOCK_PROVIDER
       # Runs an eval with the given parameters.
       #
       # @param eval_name [String] Name or path of the eval to run
       # @param skill_name [String] Name of the skill to use
-      # @param provider_name [String] Name of the provider to use
       # @return [Hash] Result with pass/fail and score
-      def self.call(eval_name:, skill_name:, provider_name:)
-        new(eval_name: eval_name, skill_name: skill_name, provider_name: provider_name).call
+      def self.call(eval_name:, skill_name:)
+        new(eval_name: eval_name, skill_name: skill_name).call
       end
 
       # @param eval_name [String] Name or path of the eval
       # @param skill_name [String] Name of the skill
-      # @param provider_name [String] Name of the provider
-      def initialize(eval_name:, skill_name:, provider_name:)
+      def initialize(eval_name:, skill_name:)
         @eval_name = eval_name
         @skill_name = skill_name
-        @provider_name = provider_name
       end
 
       # Executes the eval: resolves entities, spawns agent, scores result.
       #
       # @return [Hash] Scored result with pass/fail status
       def call
-        eval = resolve_eval
+        evaluation = resolve_eval
         skill = resolve_skill
         provider = resolve_provider
 
-        result = spawn_agent(eval, skill, provider)
-        score_result(eval, result)
+        result = spawn_agent(evaluation, skill, provider)
+        score_result(evaluation, result)
       end
 
       private
 
-      attr_reader :eval_name, :skill_name, :provider_name
+      attr_reader :eval_name, :skill_name
 
       def resolve_eval
         eval_path = eval_name.include?('/') ? eval_name : "evals/#{eval_name}"
@@ -51,25 +54,22 @@ module SkillBench
       end
 
       def resolve_skill
-        skills = SkillBench::Models::Skill.discover
-        skills.find { |skill| skill.name == skill_name } || raise("Skill not found: #{skill_name}")
+        Services::SkillResolver.call(skill_name)
       end
 
       def resolve_provider
-        return mock_provider if provider_name == 'mock'
-
         config = SkillBench::Models::Config.load
-        config.find_provider(provider_name) || raise("Provider not found: #{provider_name}")
+        provider = config.to_provider
+        return provider if provider
+
+        warn 'Config load failed, using mock provider'
+        MOCK_PROVIDER.new('mock', 'mock', 'mock', {})
       end
 
-      def mock_provider
-        Struct.new(:name, :runtime, :llm).new('mock', 'mock', 'mock')
-      end
+      def spawn_agent(evaluation, skill, provider)
+        return { result: 'mock result', status: :success } if provider.name == 'mock'
 
-      def spawn_agent(eval, skill, provider)
-        return { result: 'mock result', status: 'success' } if provider.name == 'mock'
-
-        client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime)
+        client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime.to_sym)
         config = provider.merged_config
 
         # Standardize options for the client
@@ -79,14 +79,14 @@ module SkillBench
         # Execute the prompt
         response = client_class.call(
           system_prompt: load_skill_context(skill),
-          messages: [{ role: 'user', content: eval.task }],
+          messages: [{ role: 'user', content: evaluation.task }],
           **options
         )
 
-        # Standardize output for AgentEval
+        # Standardize output for SkillBench
         {
           result: response[:result],
-          status: response[:success] ? 'success' : 'error',
+          status: response[:success] ? :success : :error,
           runtime: provider.runtime,
           usage: response[:usage],
           raw_response: response[:response]
@@ -98,13 +98,17 @@ module SkillBench
         File.exist?(skill_md) ? File.read(skill_md) : ''
       end
 
-      def score_result(eval, result)
+      def score_result(evaluation, result)
         ScoringService.call(
-          eval: eval,
+          eval: evaluation,
           result: result,
           skill_name: skill_name,
-          provider_name: provider_name
+          provider_name: resolve_provider_name
         )
+      end
+
+      def resolve_provider_name
+        resolve_provider.name.to_s
       end
     end
   end

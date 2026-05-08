@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/hash/keys'
+require_relative '../provider_schemas'
 
 module SkillBench
   module Models
     # Represents an agent runtime + LLM provider
     class Provider
       attr_reader :name, :runtime, :llm, :config
+
+      ALLOWED_PROVIDERS = (ProviderSchemas.names.map(&:to_s) + %w[mock]).freeze
 
       # Initialize a new Provider
       # @param name [String] Provider name (e.g., "openai")
@@ -17,14 +19,16 @@ module SkillBench
         @name = name
         @runtime = runtime
         @llm = llm
-        @config = config.deep_symbolize_keys
+        @config = config.is_a?(Hash) ? config.transform_keys(&:to_sym) : {}
       end
 
       # Returns merged config with environment variable fallbacks
       # @return [Hash] Merged configuration
       # @raise [ArgumentError] if API key is not found in config or env
       def merged_config
-        env_key = "AGENT_EVAL_#{name.upcase}_API_KEY"
+        raise ArgumentError, "Invalid provider name: #{name}" unless ALLOWED_PROVIDERS.include?(name)
+
+        env_key = "SKILL_BENCH_#{name.upcase}_API_KEY"
         resolved_key = ENV[env_key] || config[:api_key]
 
         return config.merge(api_key: resolved_key) if resolved_key && !resolved_key.empty?

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'pathname'
+require 'cgi'
 
 module SkillBench
   # Responsible for loading source context files (markdown files) from a given path
@@ -25,7 +26,6 @@ module SkillBench
     # @param base_path [Pathname, String] The base path to resolve the source directory against.
     # @return [void]
     # @raise [TypeError] when the provided source or base path cannot be converted into a pathname.
-    # :reek:ControlParameter
     def initialize(source_path: nil, skill_path: nil, base_path: nil)
       @source_path = source_path || skill_path
       @base_path = base_path || Pathname.new(Dir.pwd)
@@ -69,8 +69,8 @@ module SkillBench
         relative_path = Pathname.new(file_path).relative_path_from(@base_path).to_s
         content = File.read(file_path)
 
-        xml << "  <file path=\"#{relative_path}\">"
-        xml << content.gsub(/^/, '    ') # indent content for readability
+        xml << "  <file path=\"#{CGI.escapeHTML(relative_path)}\">"
+        xml << CGI.escapeHTML(content).gsub(/^/, '    ')
         xml << '  </file>'
       end
 

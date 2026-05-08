@@ -2,7 +2,7 @@
 
 module SkillBench
   module MCP
-    # MCP Server integration for agent-eval
+    # MCP Server integration for skill-bench
     class Server
       class << self
         private

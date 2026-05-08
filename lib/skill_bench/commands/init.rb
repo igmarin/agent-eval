@@ -1,44 +1,37 @@
 # frozen_string_literal: true
 
-require 'yaml'
+require 'json'
+require_relative '../provider_schemas'
 
 module SkillBench
   module Commands
-    # Handles the `agent-eval init` command
+    # Handles the `skill-bench init` command.
+    # Generates a skill-bench.json config file with single-provider settings.
     class Init
-      # Run the init command to generate config
-      # @param options [Hash] Options for init (e.g., rails: true, force: true)
+      # Run the init command to generate config.
+      #
+      # @param provider [Symbol] LLM provider name (e.g., :openai, :gemini)
+      # @param force [Boolean] Whether to overwrite an existing config file.
       # @return [void]
-      def self.run(options = {})
-        raise 'Config file already exists. Use --force to overwrite or backup the file first.' if File.exist?('.agent-eval.yml') && !options[:force]
+      # @raise [RuntimeError] if config file exists and force is false
+      # @raise [ArgumentError] if provider is not registered
+      def self.run(provider:, force: false)
+        raise "Config file '#{SkillBench::Config::CONFIG_FILENAME}' already exists. Use --force to overwrite." if File.exist?(SkillBench::Config::CONFIG_FILENAME) && !force
 
-        config = default_config
-        config['rails'] = rails_config if options[:rails]
-
-        File.write('.agent-eval.yml', config.to_yaml)
+        config = config_for_provider(provider)
+        File.write(SkillBench::Config::CONFIG_FILENAME, JSON.pretty_generate(config))
       end
 
-      # Returns default configuration hash
-      # @return [Hash] Default configuration with providers
-      def self.default_config
+      # Generates configuration hash for a specific provider.
+      #
+      # @param provider [Symbol] LLM provider name
+      # @return [Hash] Single-provider configuration
+      # @raise [ArgumentError] if provider is not registered
+      def self.config_for_provider(provider)
         {
-          'providers' => {
-            'openai' => {
-              'runtime' => 'opencode',
-              'llm' => 'openai',
-              'config' => { 'api_key' => '${AGENT_EVAL_OPENAI_API_KEY}' }
-            }
-          }
-        }
-      end
-
-      # Returns Rails-specific configuration
-      # @return [Hash] Rails configuration with skill/eval paths
-      def self.rails_config
-        {
-          'skill_paths' => ['skills/'],
-          'eval_paths' => ['evals/'],
-          'rails_env' => 'test'
+          provider: provider,
+          max_execution_time: 30,
+          config: SkillBench::ProviderSchemas.for(provider)
         }
       end
     end

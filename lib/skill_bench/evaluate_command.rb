@@ -6,7 +6,7 @@ require_relative 'services/result_printer_service'
 require_relative 'services/output_persistence_service'
 
 module SkillBench
-  # Implements the `bin/evaluate` CLI command.
+  # Implements the `skill-bench run` CLI command.
   # Orchestrates option parsing, evaluation execution, result printing, and output persistence.
   class EvaluateCommand
     # Parses arguments, runs the evaluator, prints the report, and records history.
