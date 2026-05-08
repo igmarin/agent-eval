@@ -71,7 +71,7 @@ module SkillBench
         content = File.read(file_path)
 
         xml << "  <file path=\"#{CGI.escapeHTML(relative_path)}\">"
-        xml << content.gsub(/^/, '    ') # indent content for readability
+        xml << CGI.escapeHTML(content).gsub(/^/, '    ')
         xml << '  </file>'
       end
 

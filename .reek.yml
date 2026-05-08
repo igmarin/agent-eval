@@ -115,6 +115,7 @@ detectors:
       - "SkillBench::Services::ScoringService#load_thresholds"
       - "SkillBench::Services::ScoringService#test_pass_rate"
       - "SkillBench::EvaluateCommand#safe_expand_path"
+      - "SkillBench::CLI#call"
       - "SkillBench::Services::OptionParserService#parser"
       - "SkillBench::CLI#handle_run"
       - "SkillBench::CLI#handle_skill_new"

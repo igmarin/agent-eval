@@ -59,15 +59,15 @@ module SkillBench
     # @raise [SystemCallError] when git commands fail.
     def self.capture_diff(sandbox_dir)
       sandbox_path = File.realpath(sandbox_dir)
-      tmp_prefix = File.realpath(Dir.tmpdir)
+      tmp_prefix = File.realpath(Dir.tmpdir) + File::SEPARATOR
       raise "Sandbox directory #{sandbox_dir} is outside temp directory" unless sandbox_path.start_with?(tmp_prefix)
 
-      return 'No code changes made.' unless File.directory?(File.join(sandbox_dir, '.git'))
+      return 'No code changes made.' unless File.directory?(File.join(sandbox_path, '.git'))
 
-      raise "Failed to stage changes in #{sandbox_dir}" unless system('git', 'add', '.', chdir: sandbox_dir)
+      raise "Failed to stage changes in #{sandbox_path}" unless system('git', 'add', '.', chdir: sandbox_path)
 
-      diff, status = Open3.capture2('git', 'diff', '--cached', chdir: sandbox_dir)
-      raise "Failed to capture diff in #{sandbox_dir}" unless status.success?
+      diff, status = Open3.capture2('git', 'diff', '--cached', chdir: sandbox_path)
+      raise "Failed to capture diff in #{sandbox_path}" unless status.success?
 
       diff.strip.empty? ? 'No code changes made.' : diff
     end

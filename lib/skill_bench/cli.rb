@@ -26,6 +26,7 @@ module SkillBench
     # Dispatches to the appropriate subcommand handler.
     #
     # @return [Integer] Exit code.
+    # :reek:DuplicateMethodCall { enabled: false }
     def call
       help = -> { Cli::HelpPrinter.call }
       return help.call if @argv.empty?

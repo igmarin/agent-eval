@@ -61,7 +61,7 @@ module SkillBench
       status = result[:pass] ? 'passed' : 'failed'
       eval_name = CGI.escapeHTML(result[:eval_name].to_s)
       score = CGI.escapeHTML(result[:score].to_s)
-      failure_xml = result[:pass] ? '' : "<failure message=\"Score: #{CGI.escapeHTML(score)}\">Eval #{status}</failure>"
+      failure_xml = result[:pass] ? '' : "<failure message=\"Score: #{score}\">Eval #{status}</failure>"
       <<~XML
         <?xml version="1.0"?>
         <testsuite name="AgentEval" tests="1" failures="#{result[:pass] ? 0 : 1}">

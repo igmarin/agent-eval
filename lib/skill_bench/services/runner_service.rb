@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'json'
 require_relative '../models/eval'
 require_relative '../models/skill'
 require_relative '../models/config'
@@ -10,11 +11,11 @@ require_relative 'skill_resolver'
 
 module SkillBench
   module Services
-    # Mock provider struct for testing without real LLM calls.
-    MOCK_PROVIDER = Struct.new(:name, :runtime, :llm, :merged_config)
-
     # Orchestrates the execution of an eval
     class RunnerService
+      # Mock provider struct for testing without real LLM calls.
+      MOCK_PROVIDER = Struct.new(:name, :runtime, :llm, :merged_config)
+      private_constant :MOCK_PROVIDER
       # Runs an eval with the given parameters.
       #
       # @param eval_name [String] Name or path of the eval to run
@@ -60,6 +61,9 @@ module SkillBench
         @resolve_provider ||= begin
           config = SkillBench::Models::Config.load
           config.to_provider || MOCK_PROVIDER.new('mock', 'mock', 'mock', {})
+        rescue StandardError => e
+          warn "Config load failed, using mock provider: #{e.message}"
+          MOCK_PROVIDER.new('mock', 'mock', 'mock', {})
         end
       end
 

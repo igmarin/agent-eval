@@ -7,6 +7,10 @@ module SkillBench
     # Handles the `skill-bench init` subcommand.
     # Parses options and delegates to Commands::Init.
     class InitCommand
+      # Raised when -h/--help is passed to abort parsing and return exit code 0.
+      class HelpRequested < StandardError; end
+      private_constant :HelpRequested
+
       # Parses argv and executes the init command.
       #
       # @param argv [Array<String>] Raw CLI arguments
@@ -33,6 +37,8 @@ module SkillBench
         Commands::Init.run(**options)
         puts "Created #{SkillBench::Config::CONFIG_FILENAME}"
         0
+      rescue HelpRequested
+        0
       rescue StandardError => e
         warn "Error: #{e.message}"
         1
@@ -47,7 +53,7 @@ module SkillBench
           opts.on('--force', 'Overwrite existing config file') { options[:force] = true }
           opts.on('-h', '--help', 'Prints this help') do
             puts opts
-            return 0
+            raise HelpRequested
           end
         end
       end
