@@ -12,18 +12,21 @@ module SkillBench
       }
       fixed_path = '/tmp/benchmarks.json'
 
-      SkillBench::HistoryRecorder::PersistenceService.stubs(:determine_history_file).returns(fixed_path)
-      SkillBench::HistoryRecorder::PersistenceService.stubs(:load_history).with(fixed_path).returns([])
+      SkillBench::HistoryRecorder::HistoryPathResolver.stubs(:resolve).returns(fixed_path)
+      SkillBench::HistoryRecorder::HistoryFile.stubs(:load).with(fixed_path).returns([])
 
-      mock_file = mock('file')
-      mock_file.expects(:flock).with(File::LOCK_EX)
-      mock_file.expects(:write).with(regexp_matches(%r{"source_path": "skills/test"}))
-      mock_file.expects(:fsync)
-
-      File.expects(:open).with(regexp_matches(/\.tmp\.\d+/), File::WRONLY | File::CREAT | File::TRUNC, 0o644).yields(mock_file).returns(true)
-      File.expects(:rename).with(regexp_matches(/\.tmp\.\d+/), fixed_path).returns(true)
+      captured_data = nil
+      SkillBench::HistoryRecorder::HistoryFile.stubs(:write).with(fixed_path, anything) do |_path, data|
+        captured_data = data
+      end
 
       SkillBench::HistoryRecorder.record(results, source_path: 'skills/test', model: 'gpt-4')
+
+      assert_equal 1, captured_data.length
+      assert_equal 'skills/test', captured_data.first[:source_path]
+      assert_equal 'gpt-4', captured_data.first[:model]
+      assert captured_data.first[:timestamp]
+      assert captured_data.first[:summary]
     end
 
     def test_record_does_nothing_on_failure
