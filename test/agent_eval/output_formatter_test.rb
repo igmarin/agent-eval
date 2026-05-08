@@ -38,7 +38,7 @@ module SkillBench
       output = OutputFormatter.format(result, format: :junit)
 
       assert_includes output, '<?xml version="1.0"?>'
-      assert_includes output, '<testsuite name="AgentEval" tests="1" failures="0">'
+      assert_includes output, '<testsuite name="SkillBench" tests="1" failures="0">'
       assert_includes output, '<testcase name="test-eval"'
       refute_includes output, '<failure'
     end

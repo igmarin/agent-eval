@@ -4,15 +4,17 @@ This guide explains how to run evaluations and how to create new evaluation task
 
 ## Running Evaluations
 
-The primary tool for running evaluations is the `agent-eval` CLI.
+The primary tool for running evaluations is the `skill-bench` CLI.
 
 ### Basic Usage
 
 To run a specific evaluation task:
 
 ```bash
-bundle exec agent-eval run my-eval --skill=my-skill --provider=openai
+skill-bench run my-eval --skill=my-skill
 ```
+
+Provider is read from `skill-bench.json` — no `--provider` flag needed.
 
 ### Output Formats
 
@@ -29,30 +31,30 @@ Score: 0.95
 
 **JSON (CI mode):**
 ```bash
-bundle exec agent-eval run my-eval --skill=my-skill --provider=openai --ci
+skill-bench run my-eval --skill=my-skill --ci
 ```
 
 **JUnit XML:**
 ```bash
-bundle exec agent-eval run my-eval --skill=my-skill --provider=openai --format=junit
+skill-bench run my-eval --skill=my-skill --format=junit
 ```
 
 ### Batch Processing
 
-To run all evaluations within a directory:
+To run an eval with a path containing a slash:
 
 ```bash
-bundle exec agent-eval run evals/skills --skill=my-skill --provider=openai
+skill-bench run evals/my-eval --skill=my-skill
 ```
 
-The evaluator will recursively find all task directories and execute them.
+The evaluator resolves the path automatically.
 
 ### Overriding Skill Context
 
 By default, the evaluator infers the skill path from the evaluation path. If you need to test an evaluation against a different skill:
 
 ```bash
-bin/evaluate --eval ../private-evals/skills/patterns/ruby-service-objects/call-pattern-and-response-format --skill ../skills/custom-skill
+skill-bench run my-eval --skill=skills/custom-skill
 ```
 
 ## Creating New Evaluations
@@ -70,28 +72,24 @@ This file contains the instructions for the AI agent. It should describe a speci
 
 ### 2. The Criteria (`criteria.json`)
 
-This file defines the grading rubric used by the LLM Judge.
+This file defines the grading thresholds:
 
 ```json
-[
-  {
-    "name": "Standard usage",
-    "description": "The solution implements the .call pattern as specified in the skill.",
-    "max_score": 50
+{
+  "runtime": "rails",
+  "pass": {
+    "score_threshold": 0.8
   },
-  {
-    "name": "Error handling",
-    "description": "The solution includes appropriate error handling and logging.",
-    "max_score": 50
+  "fail": {
+    "score_threshold": 0.5
   }
-]
+}
 ```
 
 **Fields:**
-- `name`: A short label for the criterion.
-- `description`: Detailed explanation of what the judge should look for.
-- `max_score`: The maximum points awarded for this criterion (usually summing to 100).
-- `conditional` (optional): If `true`, the judge will treat this as an N/A-safe rule.
+- `runtime`: Target runtime environment ("rails" or "generic")
+- `pass.score_threshold`: Score needed to pass (default 0.8)
+- `fail.score_threshold`: Score below which the eval is a clear failure (default 0.5)
 
 ## Evaluating Workflows vs. Skills
 
@@ -103,14 +101,14 @@ Skills are isolated blocks of logic (e.g., a specific API pattern). Evaluations 
 
 Workflows are sequences of skills or complex orchestrations (e.g., the full TDD loop). Evaluations for workflows should focus on the process, the ordering of tasks, and the successful completion of a multi-step objective.
 
-When running a workflow evaluation, ensure the `--eval` path points to a workflow eval directory such as `evals/workflows/`.
+When running a workflow evaluation, ensure the eval path points to a workflow eval directory such as `evals/workflows/`.
 
 ## Running the Test Suite
 
-The project uses Minitest with 326+ tests covering:
+The project uses Minitest with 373+ tests covering:
 - Core evaluation engine (`test/evaluator/`)
 - CLI commands and models (`test/agent_eval/`)
-- Provider clients (`test/evaluator/clients/`)
+- Provider clients (`test/clients/`)
 - Skill services (`test/skills/`)
 
 ```bash
@@ -121,10 +119,11 @@ bundle exec rake test
 bundle exec rake test COVERAGE=true
 
 # Run specific test file
-bundle exec ruby -Itest test/agent_eval/commands/skill_new_test.rb
+bundle exec ruby -Itest test/agent_eval/services/scoring_service_test.rb
 
-# Run tests matching a pattern
-bundle exec ruby -Itest -e "Dir['test/**/*_test.rb'].each { |f| require f }" -- --name /provider/
+# Run lint checks
+bundle exec rake rubocop
+bundle exec rake reek
 ```
 
 ### Test Isolation
@@ -148,10 +147,10 @@ end
 Tests that modify ENV must restore original values:
 ```ruby
 def test_something
-  original_key = ENV.fetch('OPENAI_API_KEY', nil)
-  ENV.delete('OPENAI_API_KEY')
+  original_key = ENV.fetch('SKILL_BENCH_OPENAI_API_KEY', nil)
+  ENV.delete('SKILL_BENCH_OPENAI_API_KEY')
   # ... test code ...
 ensure
-  ENV['OPENAI_API_KEY'] = original_key if original_key
+  ENV['SKILL_BENCH_OPENAI_API_KEY'] = original_key if original_key
 end
 ```

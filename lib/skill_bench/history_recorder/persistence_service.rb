@@ -63,11 +63,11 @@ module SkillBench
         return cwd_path if writable?(cwd_path)
 
         home_dir = Dir.home
-        local_path = File.join(home_dir, '.local', 'share', 'agent_evaluator', 'benchmarks.json')
+        local_path = File.join(home_dir, '.local', 'share', 'skill_bench', 'benchmarks.json')
         return local_path if prepare_and_writable?(local_path)
 
         xdg_data_home = ENV.fetch('XDG_DATA_HOME', File.join(home_dir, '.local', 'share'))
-        xdg_path = File.join(xdg_data_home, 'agent_evaluator', 'benchmarks.json')
+        xdg_path = File.join(xdg_data_home, 'skill_bench', 'benchmarks.json')
         return xdg_path if prepare_and_writable?(xdg_path)
 
         warn('Warning: Could not find writable location for benchmarks.json')
@@ -127,7 +127,7 @@ module SkillBench
       #
       # @return [Array<String>] allowed directory paths
       def self.allowed_history_prefixes
-        [Dir.pwd, File.join(Dir.home, '.local', 'share', 'agent_evaluator')]
+        [Dir.pwd, File.join(Dir.home, '.local', 'share', 'skill_bench')]
       end
       private_class_method :allowed_history_prefixes
 

@@ -5,7 +5,7 @@ require_relative '../rails/skill_templates'
 
 module SkillBench
   module Commands
-    # Handles the `agent-eval skill new` command
+    # Handles the `skill-bench skill new` command
     class SkillNew
       # Run the skill new command
       # @param name [String] Skill name

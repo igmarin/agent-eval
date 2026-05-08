@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-# Runtime dependencies are declared in agent_evaluator.gemspec.
+# Runtime dependencies are declared in ruby-skill-bench.gemspec.
 gemspec
 
 group :development, :test do

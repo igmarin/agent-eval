@@ -5,7 +5,7 @@ require 'json'
 
 module SkillBench
   module Commands
-    # Handles the `agent-eval eval new` command
+    # Handles the `skill-bench eval new` command
     class EvalNew
       # Run the eval new command
       # @param name [String] Eval name

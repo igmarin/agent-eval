@@ -28,7 +28,7 @@ module SkillBench
       def merged_config
         raise ArgumentError, "Invalid provider name: #{name}" unless ALLOWED_PROVIDERS.include?(name)
 
-        env_key = "AGENT_EVAL_#{name.upcase}_API_KEY"
+        env_key = "SKILL_BENCH_#{name.upcase}_API_KEY"
         resolved_key = ENV[env_key] || config[:api_key]
 
         return config.merge(api_key: resolved_key) if resolved_key && !resolved_key.empty?

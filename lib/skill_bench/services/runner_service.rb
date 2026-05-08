@@ -84,7 +84,7 @@ module SkillBench
           **options
         )
 
-        # Standardize output for AgentEval
+        # Standardize output for SkillBench
         {
           result: response[:result],
           status: response[:success] ? 'success' : 'error',

@@ -1,9 +1,9 @@
 # SkillBench Models
 
-This directory contains the core data models for the Ruby Skill Bench tool.
+This directory contains the core data models for Ruby Skill Bench.
 
 ## Structure
-- `config.rb`: Configuration model for loading `.agent-eval.yml` (legacy format)
+- `config.rb`: Configuration model for loading `skill-bench.json`
 - `skill.rb`: Skill model for discovering and representing reusable skills
 - `eval.rb`: Eval model for loading and representing evaluation scenarios
 - `provider.rb`: Provider model for agent runtime + LLM abstraction

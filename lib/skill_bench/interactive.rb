@@ -4,7 +4,7 @@ require 'skill_bench/commands/run'
 
 # Provides interactive CLI mode using gum-like menu system
 module SkillBench
-  # Interactive CLI module for agent-eval
+  # Interactive CLI module for skill-bench
   module Interactive
     # Run the interactive CLI mode
     # @return [Hash, nil] Result from Run.run, or nil if user exits
