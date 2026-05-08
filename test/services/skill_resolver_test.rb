@@ -23,7 +23,7 @@ module SkillBench
         skill = SkillResolver.call('my-skill')
 
         assert_equal 'my-skill', skill.name
-        assert_match(/skills\/my-skill$/, skill.path)
+        assert_match(%r{skills/my-skill$}, skill.path)
       end
 
       def test_resolve_by_name_finds_nested_skill
@@ -33,7 +33,7 @@ module SkillBench
         skill = SkillResolver.call('ruby-api-client-integration')
 
         assert_equal 'ruby-api-client-integration', skill.name
-        assert_match(/skills\/api\/ruby-api-client-integration$/, skill.path)
+        assert_match(%r{skills/api/ruby-api-client-integration$}, skill.path)
       end
 
       def test_resolve_by_path_finds_nested_skill
@@ -43,7 +43,7 @@ module SkillBench
         skill = SkillResolver.call('skills/api/ruby-api-client-integration')
 
         assert_equal 'ruby-api-client-integration', skill.name
-        assert_match(/skills\/api\/ruby-api-client-integration$/, skill.path)
+        assert_match(%r{skills/api/ruby-api-client-integration$}, skill.path)
       end
 
       def test_resolve_by_path_with_skill_md_suffix
@@ -53,7 +53,7 @@ module SkillBench
         skill = SkillResolver.call('skills/api/ruby-api-client-integration/SKILL.md')
 
         assert_equal 'ruby-api-client-integration', skill.name
-        assert_match(/skills\/api\/ruby-api-client-integration$/, skill.path)
+        assert_match(%r{skills/api/ruby-api-client-integration$}, skill.path)
       end
 
       def test_resolve_raises_when_skill_not_found_by_name

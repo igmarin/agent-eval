@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'json'
 require_relative 'provider'
 
 module SkillBench
   module Models
-    # Represents the agent-eval configuration loaded from .agent-eval.yml or custom path
+    # Represents the skill-bench configuration loaded from skill-bench.json
     class Config
       # @param data [Hash] Raw configuration data
       # @raise [ArgumentError] if data is not a Hash
@@ -33,48 +34,31 @@ module SkillBench
 
       private_class_method :recursive_symbolize_keys
 
-      # Load configuration from a YAML file
-      # @param path [String] Path to config file (default: .agent-eval.yml)
+      # Load configuration from a JSON file
+      # @param path [String] Path to config file (default: skill-bench.json)
       # @return [SkillBench::Models::Config] Loaded config instance
-      # @note Missing config files are handled by logging and returning an empty config
-      def self.load(path = '.agent-eval.yml')
-        raw_data = YAML.safe_load_file(path, permitted_classes: [], aliases: true) || {}
+      # @raise [Errno::ENOENT] if config file not found
+      def self.load(path = 'skill-bench.json')
+        raw_data = JSON.parse(File.read(path), symbolize_names: true)
         new(raw_data)
-      rescue Errno::ENOENT
-        if defined?(::Rails) && ::Rails.respond_to?(:logger) && ::Rails.logger
-          ::Rails.logger.error("Config file not found: #{path}")
-        else
-          warn "Config file not found: #{path}"
-        end
-        new({})
       end
 
-      # Returns configured providers
-      # @return [Hash] Provider configurations keyed by provider name
-      def providers
-        @data.fetch(:providers, {}).each_with_object({}) do |(key, config), result|
-          result[key] = Provider.new(
-            name: key.to_s,
-            runtime: config[:runtime],
-            llm: config[:llm],
-            config: config[:config] || {}
-          )
-        end
+      # Returns the configured provider name
+      # @return [String, nil] Provider name
+      def provider_name
+        @data[:provider]
       end
 
-      # Find a provider by name
-      # @param name [String, Symbol]
-      # @return [Provider, nil]
-      def find_provider(name)
-        config = @data.fetch(:providers, {})[name.to_sym]
-        return nil unless config
+      # Returns the provider configuration
+      # @return [Hash] Provider configuration
+      def provider_config
+        @data[:config] || {}
+      end
 
-        Provider.new(
-          name: name.to_s,
-          runtime: config[:runtime],
-          llm: config[:llm],
-          config: config[:config] || {}
-        )
+      # Returns max execution time
+      # @return [Integer] Max execution time in seconds
+      def max_execution_time
+        @data[:max_execution_time] || 30
       end
     end
   end

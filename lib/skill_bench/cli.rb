@@ -50,9 +50,10 @@ module SkillBench
     private
 
     def handle_init(argv)
-      options = { force: false }
+      options = { force: false, provider: nil }
       parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: skill-bench init [options]'
+        opts.banner = 'Usage: skill-bench init --<provider> [options]'
+        register_provider_options(opts, options)
         opts.on('--force', 'Overwrite existing config file') { options[:force] = true }
         opts.on('-h', '--help', 'Prints this help') do
           puts opts
@@ -60,6 +61,11 @@ module SkillBench
         end
       end
       parser.parse!(argv)
+
+      unless options[:provider]
+        warn 'Error: provider is required. Use one of: --openai, --anthropic, --gemini, --ollama, --azure, --groq, --deepseek'
+        return 1
+      end
 
       Commands::Init.run(**options)
       puts "Created #{SkillBench::Config::CONFIG_FILENAME}"
@@ -74,7 +80,6 @@ module SkillBench
       parser = OptionParser.new do |opts|
         opts.banner = 'Usage: skill-bench run <eval> [options]'
         opts.on('--skill NAME', 'Skill to use') { |v| options[:skill_name] = v }
-        opts.on('--provider NAME', 'Provider to use') { |v| options[:provider_name] = v }
         opts.on('-h', '--help', 'Prints this help') do
           puts opts
           exit
@@ -85,7 +90,7 @@ module SkillBench
       eval_name = argv.shift
       unless eval_name
         warn 'Error: eval name is required'
-        warn 'Usage: skill-bench run <eval> --skill <name> --provider <name>'
+        warn 'Usage: skill-bench run <eval> --skill <name>'
         return 1
       end
 
@@ -188,6 +193,12 @@ module SkillBench
       else
         warn "Error: #{result.dig(:response, :error, :message)}"
         1
+      end
+    end
+
+    def register_provider_options(parser, options)
+      SkillBench::ProviderSchemas.names.each do |name|
+        parser.on("--#{name}", "Generate config for #{name.to_s.capitalize}") { options[:provider] = name }
       end
     end
 

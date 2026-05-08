@@ -3,6 +3,7 @@
 require_relative '../models/eval'
 require_relative '../models/skill'
 require_relative '../models/config'
+require_relative '../models/provider'
 require_relative '../clients/all'
 require_relative 'scoring_service'
 require_relative 'skill_resolver'
@@ -15,19 +16,16 @@ module SkillBench
       #
       # @param eval_name [String] Name or path of the eval to run
       # @param skill_name [String] Name of the skill to use
-      # @param provider_name [String] Name of the provider to use
       # @return [Hash] Result with pass/fail and score
-      def self.call(eval_name:, skill_name:, provider_name:)
-        new(eval_name: eval_name, skill_name: skill_name, provider_name: provider_name).call
+      def self.call(eval_name:, skill_name:)
+        new(eval_name: eval_name, skill_name: skill_name).call
       end
 
       # @param eval_name [String] Name or path of the eval
       # @param skill_name [String] Name of the skill
-      # @param provider_name [String] Name of the provider
-      def initialize(eval_name:, skill_name:, provider_name:)
+      def initialize(eval_name:, skill_name:)
         @eval_name = eval_name
         @skill_name = skill_name
-        @provider_name = provider_name
       end
 
       # Executes the eval: resolves entities, spawns agent, scores result.
@@ -44,7 +42,7 @@ module SkillBench
 
       private
 
-      attr_reader :eval_name, :skill_name, :provider_name
+      attr_reader :eval_name, :skill_name
 
       def resolve_eval
         eval_path = eval_name.include?('/') ? eval_name : "evals/#{eval_name}"
@@ -56,20 +54,28 @@ module SkillBench
       end
 
       def resolve_provider
+        config = SkillBench::Models::Config.load
+        provider_name = config.provider_name
+
         return mock_provider if provider_name == 'mock'
 
-        config = SkillBench::Models::Config.load
-        config.find_provider(provider_name) || raise("Provider not found: #{provider_name}")
+        provider_config = config.provider_config
+        SkillBench::Models::Provider.new(
+          name: provider_name,
+          runtime: provider_name,
+          llm: provider_name,
+          config: provider_config
+        )
       end
 
       def mock_provider
-        Struct.new(:name, :runtime, :llm).new('mock', 'mock', 'mock')
+        Struct.new(:name, :runtime, :llm, :merged_config).new('mock', 'mock', 'mock', {})
       end
 
       def spawn_agent(eval, skill, provider)
         return { result: 'mock result', status: 'success' } if provider.name == 'mock'
 
-        client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime)
+        client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime.to_sym)
         config = provider.merged_config
 
         # Standardize options for the client
@@ -103,8 +109,13 @@ module SkillBench
           eval: eval,
           result: result,
           skill_name: skill_name,
-          provider_name: provider_name
+          provider_name: resolve_provider_name
         )
+      end
+
+      def resolve_provider_name
+        config = SkillBench::Models::Config.load
+        config.provider_name.to_s
       end
     end
   end

@@ -13,6 +13,7 @@ module SkillBench
       # @return [Hash] Parsed response body
       def self.parse_body(response)
         return response.body if response.body.is_a?(Hash)
+        return { error: { message: response.body.to_s } } if response.body.is_a?(Array)
 
         JSON.parse(response.body, symbolize_names: true)
       rescue JSON::ParserError

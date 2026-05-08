@@ -27,11 +27,15 @@ module SkillBench
 
       def test_call_returns_result_for_mock_provider
         Models::Config.instance_variable_set(:@loaded, nil)
+        File.write(SkillBench::Config::CONFIG_FILENAME, JSON.generate({
+                                                                        provider: 'mock',
+                                                                        max_execution_time: 30,
+                                                                        config: {}
+                                                                      }))
 
         result = RunnerService.call(
           eval_name: 'test-eval',
-          skill_name: 'test-skill',
-          provider_name: 'mock'
+          skill_name: 'test-skill'
         )
 
         assert result[:pass]
@@ -43,47 +47,58 @@ module SkillBench
 
       def test_call_raises_when_eval_not_found
         Models::Config.instance_variable_set(:@loaded, nil)
+        File.write(SkillBench::Config::CONFIG_FILENAME, JSON.generate({
+                                                                        provider: 'mock',
+                                                                        max_execution_time: 30,
+                                                                        config: {}
+                                                                      }))
 
         assert_raises(Errno::ENOENT) do
           RunnerService.call(
             eval_name: 'nonexistent',
-            skill_name: 'test-skill',
-            provider_name: 'mock'
+            skill_name: 'test-skill'
           )
         end
       end
 
       def test_call_raises_when_skill_not_found
         Models::Config.instance_variable_set(:@loaded, nil)
+        File.write(SkillBench::Config::CONFIG_FILENAME, JSON.generate({
+                                                                        provider: 'mock',
+                                                                        max_execution_time: 30,
+                                                                        config: {}
+                                                                      }))
 
         assert_raises(ArgumentError) do
           RunnerService.call(
             eval_name: 'test-eval',
-            skill_name: 'nonexistent',
-            provider_name: 'mock'
+            skill_name: 'nonexistent'
           )
         end
       end
 
-      def test_call_raises_when_provider_not_found
+      def test_call_raises_when_config_not_found
         Models::Config.instance_variable_set(:@loaded, nil)
 
-        assert_raises(RuntimeError) do
+        assert_raises(Errno::ENOENT) do
           RunnerService.call(
             eval_name: 'test-eval',
-            skill_name: 'test-skill',
-            provider_name: 'nonexistent'
+            skill_name: 'test-skill'
           )
         end
       end
 
       def test_call_resolves_eval_with_full_path
         Models::Config.instance_variable_set(:@loaded, nil)
+        File.write(SkillBench::Config::CONFIG_FILENAME, JSON.generate({
+                                                                        provider: 'mock',
+                                                                        max_execution_time: 30,
+                                                                        config: {}
+                                                                      }))
 
         result = RunnerService.call(
           eval_name: 'evals/test-eval',
-          skill_name: 'test-skill',
-          provider_name: 'mock'
+          skill_name: 'test-skill'
         )
 
         assert result[:pass]

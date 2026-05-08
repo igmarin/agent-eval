@@ -17,38 +17,39 @@ module SkillBench
       end
 
       def test_run_creates_config_file
-        Init.run(force: false)
+        Init.run(provider: :openai, force: false)
 
         assert_path_exists SkillBench::Config::CONFIG_FILENAME
       end
 
       def test_run_creates_valid_json
-        Init.run(force: false)
+        Init.run(provider: :openai, force: false)
 
         content = File.read(SkillBench::Config::CONFIG_FILENAME)
         config = JSON.parse(content, symbolize_names: true)
 
-        assert config.key?(:current_llm_provider)
-        assert config.key?(:providers)
-        assert config[:providers].key?(:openai)
-        assert_equal 'gpt-4o', config[:providers][:openai][:model]
+        assert config.key?(:provider)
+        assert config.key?(:config)
+        assert_equal 'openai', config[:provider]
+        assert_equal 'gpt-4o', config[:config][:model]
       end
 
       def test_run_raises_when_file_exists_and_not_force
         File.write(SkillBench::Config::CONFIG_FILENAME, 'existing')
 
-        assert_raises(RuntimeError) { Init.run(force: false) }
+        assert_raises(RuntimeError) { Init.run(provider: :openai, force: false) }
       end
 
       def test_run_overwrites_when_force_true
         File.write(SkillBench::Config::CONFIG_FILENAME, '{"invalid": true}')
 
-        Init.run(force: true)
+        Init.run(provider: :openai, force: true)
 
         content = File.read(SkillBench::Config::CONFIG_FILENAME)
         config = JSON.parse(content)
+
         refute_equal({ 'invalid' => true }, config)
-        assert config.key?('current_llm_provider')
+        assert config.key?('provider')
       end
     end
   end

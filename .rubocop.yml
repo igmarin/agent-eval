@@ -34,7 +34,7 @@ Metrics/PerceivedComplexity:
   Max: 10
 
 Minitest/MultipleAssertions:
-  Max: 5
+  Max: 10
 
 Style/Documentation:
   Enabled: true

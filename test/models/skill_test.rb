@@ -40,6 +40,7 @@ module SkillBench
 
         assert_equal 3, skills.size
         names = skills.map(&:name).sort
+
         assert_includes names, 'ruby-api-client-integration'
         assert_includes names, 'api-rest-collection'
         assert_includes names, 'rails-graphql-best-practices'
@@ -70,7 +71,7 @@ module SkillBench
 
         assert_equal 1, skills.size
         assert_equal 'ruby-api-client-integration', skills.first.name
-        assert_match(/skills\/api\/ruby-api-client-integration$/, skills.first.path)
+        assert_match(%r{skills/api/ruby-api-client-integration$}, skills.first.path)
       end
     end
   end
