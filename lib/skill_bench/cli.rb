@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
-require 'optparse'
-require_relative 'commands/init'
-require_relative 'commands/run'
-require_relative 'commands/skill_new'
-require_relative 'commands/eval_new'
+require_relative 'cli/init_command'
+require_relative 'cli/run_command'
+require_relative 'cli/skill_command'
+require_relative 'cli/eval_command'
+require_relative 'cli/help_printer'
+require_relative 'cli/result_printer'
 
 module SkillBench
-  # CLI dispatcher that routes subcommands to their handlers.
+  # Thin CLI dispatcher that routes subcommands to their handlers.
   class CLI
     # Entry point called from bin/skill-bench.
     #
@@ -26,208 +27,21 @@ module SkillBench
     #
     # @return [Integer] Exit code.
     def call
-      return print_help if @argv.empty?
+      return HelpPrinter.call if @argv.empty?
 
       subcommand = @argv.shift
       case subcommand
-      when 'init'
-        handle_init(@argv)
-      when 'run'
-        handle_run(@argv)
-      when 'skill'
-        handle_skill(@argv)
-      when 'eval'
-        handle_eval(@argv)
+      when 'init'  then Cli::InitCommand.call(@argv)
+      when 'run'   then Cli::RunCommand.call(@argv)
+      when 'skill' then Cli::SkillCommand.call(@argv)
+      when 'eval'  then Cli::EvalCommand.call(@argv)
       when '-h', '--help', 'help'
-        print_help
+        Cli::HelpPrinter.call
       else
         warn "Unknown subcommand: #{subcommand}"
         warn "Run 'skill-bench help' for usage."
         1
       end
-    end
-
-    private
-
-    def handle_init(argv)
-      options = { force: false, provider: nil }
-      parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: skill-bench init --<provider> [options]'
-        register_provider_options(opts, options)
-        opts.on('--force', 'Overwrite existing config file') { options[:force] = true }
-        opts.on('-h', '--help', 'Prints this help') do
-          puts opts
-          exit
-        end
-      end
-      parser.parse!(argv)
-
-      unless options[:provider]
-        warn 'Error: provider is required. Use one of: --openai, --anthropic, --gemini, --ollama, --azure, --groq, --deepseek'
-        return 1
-      end
-
-      Commands::Init.run(**options)
-      puts "Created #{SkillBench::Config::CONFIG_FILENAME}"
-      0
-    rescue StandardError => e
-      warn "Error: #{e.message}"
-      1
-    end
-
-    def handle_run(argv)
-      options = {}
-      parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: skill-bench run <eval> [options]'
-        opts.on('--skill NAME', 'Skill to use') { |v| options[:skill_name] = v }
-        opts.on('-h', '--help', 'Prints this help') do
-          puts opts
-          exit
-        end
-      end
-      parser.parse!(argv)
-
-      eval_name = argv.shift
-      unless eval_name
-        warn 'Error: eval name is required'
-        warn 'Usage: skill-bench run <eval> --skill <name>'
-        return 1
-      end
-
-      options[:eval_name] = eval_name
-      result = Commands::Run.run(**options)
-      print_result(result)
-    rescue StandardError => e
-      warn "Error: #{e.message}"
-      warn e.backtrace.first(5).join("\n")
-      1
-    end
-
-    def handle_skill(argv)
-      action = argv.shift
-      case action
-      when 'new'
-        handle_skill_new(argv)
-      when '-h', '--help', 'help', nil
-        puts 'Usage: skill-bench skill new <name> [options]'
-        puts '  --mode MODE        simple, advanced, or rails (default: simple)'
-        puts '  --template TYPE    service_object, concern, active_record_model (default: service_object)'
-        0
-      else
-        warn "Unknown skill action: #{action}"
-        1
-      end
-    end
-
-    def handle_skill_new(argv)
-      options = { mode: 'simple', template: 'service_object' }
-      parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: skill-bench skill new <name> [options]'
-        opts.on('--mode MODE', 'simple, advanced, or rails') { |v| options[:mode] = v }
-        opts.on('--template TYPE', 'service_object, concern, active_record_model') { |v| options[:template] = v }
-        opts.on('-h', '--help', 'Prints this help') do
-          puts opts
-          exit
-        end
-      end
-      parser.parse!(argv)
-
-      name = argv.shift
-      unless name
-        warn 'Error: skill name is required'
-        return 1
-      end
-
-      Commands::SkillNew.run(name: name, **options)
-      puts "Created skill: #{name}"
-      0
-    rescue StandardError => e
-      warn "Error: #{e.message}"
-      1
-    end
-
-    def handle_eval(argv)
-      action = argv.shift
-      case action
-      when 'new'
-        handle_eval_new(argv)
-      when '-h', '--help', 'help', nil
-        puts 'Usage: skill-bench eval new <name> [options]'
-        puts '  --runtime TYPE  rails, ruby, etc. (default: ruby)'
-        0
-      else
-        warn "Unknown eval action: #{action}"
-        1
-      end
-    end
-
-    def handle_eval_new(argv)
-      options = { runtime: 'ruby' }
-      parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: skill-bench eval new <name> [options]'
-        opts.on('--runtime TYPE', 'rails, ruby, etc.') { |v| options[:runtime] = v }
-        opts.on('-h', '--help', 'Prints this help') do
-          puts opts
-          exit
-        end
-      end
-      parser.parse!(argv)
-
-      name = argv.shift
-      unless name
-        warn 'Error: eval name is required'
-        return 1
-      end
-
-      Commands::EvalNew.run(name: name, **options)
-      puts "Created eval: #{name}"
-      0
-    rescue StandardError => e
-      warn "Error: #{e.message}"
-      1
-    end
-
-    def print_result(result)
-      score = result[:score]
-      eval_name = result[:eval_name]
-      skill_name = result[:skill_name]
-      provider_name = result[:provider_name]
-
-      if result[:pass]
-        puts "PASS (score: #{score})"
-        puts "  eval: #{eval_name}"
-        puts "  skill: #{skill_name}"
-        puts "  provider: #{provider_name}"
-        0
-      else
-        warn "FAIL (score: #{score})"
-        warn "  eval: #{eval_name}"
-        warn "  skill: #{skill_name}"
-        warn "  provider: #{provider_name}"
-        1
-      end
-    end
-
-    def register_provider_options(parser, options)
-      SkillBench::ProviderSchemas.names.each do |name|
-        parser.on("--#{name}", "Generate config for #{name.to_s.capitalize}") { options[:provider] = name }
-      end
-    end
-
-    def print_help
-      puts <<~USAGE
-        Usage: skill-bench <subcommand> [options]
-
-        Subcommands:
-          init              Generate configuration file
-          run <eval>        Run an evaluation
-          skill new <name>  Create a new skill
-          eval new <name>   Create a new eval
-
-        Options:
-          -h, --help        Show this help message
-      USAGE
-      0
     end
   end
 end
