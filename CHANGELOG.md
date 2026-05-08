@@ -5,6 +5,52 @@ All notable changes to `ruby-skill-bench` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `ProviderSchemas` registry for provider configuration templates (8 providers: OpenAI, Anthropic, Gemini, Azure, Ollama, Groq, DeepSeek, OpenCode)
+- `SkillResolver` service for resolving skills by path or name with recursive discovery
+- `Cli::InitCommand`, `Cli::RunCommand`, `Cli::SkillCommand`, `Cli::EvalCommand` — extracted CLI subcommand handlers
+- `Cli::HelpPrinter`, `Cli::ResultPrinter` — extracted CLI output formatters
+- `Config#to_provider` method for building Provider model from config
+- `ResponseParser` now handles Array response bodies gracefully
+
+### Changed
+- **BREAKING:** `skill-bench init` now requires a provider flag (`--openai`, `--gemini`, etc.)
+- **BREAKING:** Config format changed from multi-provider to single-provider: `{ "provider": "...", "max_execution_time": N, "config": {...} }`
+- **BREAKING:** `skill-bench run` no longer accepts `--provider` flag — reads provider from config
+- `Skill.discover` now searches recursively for nested skill directories
+- `Config` model switched from YAML (`.agent-eval.yml`) to JSON (`skill-bench.json`)
+- `RunnerService` reads provider from config file instead of accepting `provider_name` parameter
+- CLI refactored from monolithic class (~230 lines) to thin dispatcher (~45 lines) with extracted command modules
+- `print_result` checks `result[:pass]` instead of `result[:success]` for correct scoring output
+
+### Fixed
+- `ResponseParser.parse_body` no longer crashes on Array response bodies
+- `RunnerService.resolve_provider` builds proper `Models::Provider` instead of raw Hash
+- `ProviderRegistry.for` now receives symbol keys for correct provider lookup
+- `print_result` now displays actual error messages instead of "Unknown error"
+- Reek: `NestedIterators` in `handle_init` extracted to `register_provider_options`
+- Reek: `FeatureEnvy` in `RunnerService#resolve_provider` moved to `Config#to_provider`
+- Reek: `DuplicateMethodCall` in `print_result` eliminated with local variables
+- `Config#to_provider` now returns nil when provider_name is nil (prevents malformed Provider)
+- `RunnerService` memoizes `resolve_provider` to avoid double Config.load calls
+- `RunnerService.mock_provider` extracted to module-level `MOCK_PROVIDER` constant Struct
+- `SkillResolver.resolve_by_name` now detects and raises on duplicate skill names
+- `ProviderSchemas.for` returns a dup of the schema to prevent registry mutation
+- `ProviderSchemas::PROVIDER_SCHEMAS` inner hashes are now frozen (deep freeze)
+- `Cli::InitCommand` error message now dynamically lists available providers
+- Removed stale `require 'yaml'` from `Config` model
+- Test teardown in `InitTest` and `InitProviderTest` now restores original working directory
+- `SkillTest` no longer uses global `Dir.chdir` — uses absolute temp paths instead
+- Added missing `require 'json'` to `RunnerServiceTest`
+
+### Quality
+- 373 tests, 0 failures
+- 89.7% line coverage
+- Rubocop: 0 offenses
+- Reek: 0 warnings
+
 ## [0.1.0] - 2026-05-07
 
 ### Added

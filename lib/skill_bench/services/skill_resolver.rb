@@ -57,7 +57,15 @@ module SkillBench
       # @raise [ArgumentError] if no skill with matching name found
       def resolve_by_name
         skills = Models::Skill.discover(base_path)
-        skills.find { |skill| skill.name == identifier } || raise(ArgumentError, "Skill not found: #{identifier}")
+        matches = skills.select { |skill| skill.name == identifier }
+
+        if matches.empty?
+          raise(ArgumentError, "Skill not found: #{identifier}")
+        elsif matches.size > 1
+          raise(ArgumentError, "Multiple skills found with name '#{identifier}': #{matches.map(&:path).join(', ')}")
+        end
+
+        matches.first
       end
     end
   end

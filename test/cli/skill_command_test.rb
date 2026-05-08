@@ -18,7 +18,7 @@ module SkillBench
       end
 
       def test_call_new_creates_skill
-        exit_code = SkillCommand.call(['new', 'my-skill'])
+        exit_code = SkillCommand.call(%w[new my-skill])
 
         assert_equal 0, exit_code
         assert_path_exists 'skills/my-skill/SKILL.md'

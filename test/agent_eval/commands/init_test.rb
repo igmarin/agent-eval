@@ -8,11 +8,12 @@ module SkillBench
     class InitTest < Minitest::Test
       def setup
         @tmp_dir = Dir.mktmpdir('skill_bench_init_test')
+        @original_dir = Dir.pwd
         Dir.chdir(@tmp_dir)
       end
 
       def teardown
-        Dir.chdir('/')
+        Dir.chdir(@original_dir)
         FileUtils.rm_rf(@tmp_dir)
       end
 

@@ -8,40 +8,40 @@ module SkillBench
       openai: {
         api_key: nil,
         model: 'gpt-4o'
-      },
+      }.freeze,
       anthropic: {
         api_key: nil,
         model: 'claude-sonnet-4-20250514'
-      },
+      }.freeze,
       gemini: {
         api_key: nil,
         model: 'gemini-1.5-flash-latest',
         location: 'us-central1',
         project_id: nil
-      },
+      }.freeze,
       ollama: {
         api_key: nil,
         model: 'qwen:7b',
         base_url: nil
-      },
+      }.freeze,
       azure: {
         api_key: nil,
         model: 'gpt-4',
         endpoint: nil,
         api_version: nil
-      },
+      }.freeze,
       groq: {
         api_key: nil,
         model: 'llama-3.3-70b-versatile'
-      },
+      }.freeze,
       deepseek: {
         api_key: nil,
         model: 'deepseek-chat'
-      },
+      }.freeze,
       opencode: {
         api_key: nil,
         model: 'opencode-model'
-      }
+      }.freeze
     }.freeze
 
     # Returns the configuration schema for a given provider.
@@ -50,9 +50,10 @@ module SkillBench
     # @return [Hash] Provider configuration schema with placeholder values
     # @raise [ArgumentError] if provider is not registered
     def self.for(provider)
-      PROVIDER_SCHEMAS.fetch(provider) do
+      schema = PROVIDER_SCHEMAS.fetch(provider) do
         raise(ArgumentError, "Unknown provider: #{provider}. Available: #{PROVIDER_SCHEMAS.keys.join(', ')}")
       end
+      schema.dup
     end
 
     # Returns list of all registered provider names.

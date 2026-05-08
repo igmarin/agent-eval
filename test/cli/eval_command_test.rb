@@ -18,7 +18,7 @@ module SkillBench
       end
 
       def test_call_new_creates_eval
-        exit_code = EvalCommand.call(['new', 'my-eval'])
+        exit_code = EvalCommand.call(%w[new my-eval])
 
         assert_equal 0, exit_code
         assert_path_exists 'evals/my-eval/task.md'
@@ -31,6 +31,7 @@ module SkillBench
         assert_equal 0, exit_code
         content = File.read('evals/my-eval/criteria.json')
         config = JSON.parse(content)
+
         assert_equal 'rails', config['runtime']
       end
 

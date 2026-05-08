@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'yaml'
 require 'json'
 require_relative 'provider'
 
@@ -66,7 +65,7 @@ module SkillBench
       #
       # @return [SkillBench::Models::Provider] The configured provider
       def to_provider
-        return nil if provider_name == 'mock'
+        return nil if provider_name.nil? || provider_name == 'mock'
 
         Provider.new(
           name: provider_name,

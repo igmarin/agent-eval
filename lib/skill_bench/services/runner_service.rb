@@ -10,6 +10,8 @@ require_relative 'skill_resolver'
 
 module SkillBench
   module Services
+    MOCK_PROVIDER = Struct.new(:name, :runtime, :llm, :merged_config)
+
     # Orchestrates the execution of an eval
     class RunnerService
       # Runs an eval with the given parameters.
@@ -54,12 +56,10 @@ module SkillBench
       end
 
       def resolve_provider
-        config = SkillBench::Models::Config.load
-        config.to_provider || mock_provider
-      end
-
-      def mock_provider
-        Struct.new(:name, :runtime, :llm, :merged_config).new('mock', 'mock', 'mock', {})
+        @resolve_provider ||= begin
+          config = SkillBench::Models::Config.load
+          config.to_provider || MOCK_PROVIDER.new('mock', 'mock', 'mock', {})
+        end
       end
 
       def spawn_agent(eval, skill, provider)
@@ -104,8 +104,7 @@ module SkillBench
       end
 
       def resolve_provider_name
-        config = SkillBench::Models::Config.load
-        config.provider_name.to_s
+        resolve_provider.name.to_s
       end
     end
   end

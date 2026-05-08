@@ -59,7 +59,8 @@ module SkillBench
       end
 
       def error_missing_provider
-        warn 'Error: provider is required. Use one of: --openai, --anthropic, --gemini, --ollama, --azure, --groq, --deepseek'
+        providers = SkillBench::ProviderSchemas.names.map { |n| "--#{n}" }.join(', ')
+        warn "Error: provider is required. Use one of: #{providers}"
         1
       end
     end
