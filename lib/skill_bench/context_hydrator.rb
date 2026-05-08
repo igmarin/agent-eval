@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'pathname'
+require 'cgi'
 
 module SkillBench
   # Responsible for loading source context files (markdown files) from a given path
@@ -69,7 +70,7 @@ module SkillBench
         relative_path = Pathname.new(file_path).relative_path_from(@base_path).to_s
         content = File.read(file_path)
 
-        xml << "  <file path=\"#{relative_path}\">"
+        xml << "  <file path=\"#{CGI.escapeHTML(relative_path)}\">"
         xml << content.gsub(/^/, '    ') # indent content for readability
         xml << '  </file>'
       end

@@ -13,6 +13,7 @@ module SkillBench
       # @param config [Hash] Configuration for this step (client params, system prompt, working dir).
       # @return [Hash] Step outcome containing :continue (boolean), :result (hash, if finished), and :messages.
       def self.call(messages, config)
+        messages = messages.dup
         client_result = Client.call(
           system_prompt: config[:system_prompt],
           messages: messages,

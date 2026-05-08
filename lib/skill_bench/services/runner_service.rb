@@ -10,6 +10,7 @@ require_relative 'skill_resolver'
 
 module SkillBench
   module Services
+    # Mock provider struct for testing without real LLM calls.
     MOCK_PROVIDER = Struct.new(:name, :runtime, :llm, :merged_config)
 
     # Orchestrates the execution of an eval

@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `print_result` checks `result[:pass]` instead of `result[:success]` for correct scoring output
 
 ### Fixed
+- `CLI` HelpPrinter constant fully qualified to prevent NameError
+- All CLI command help handlers return `0` instead of calling `exit` (composable/testable)
+- `InitCommandTest` verifies no config file created on missing provider
+- `InitCommandTest` verifies existing config preserved when `--force` not used
+- `RunCommandTest` has explicit `require 'json'`
+- `RunnerServiceTest` extracted `write_mock_config` helper to eliminate duplication
 - `ResponseParser.parse_body` no longer crashes on Array response bodies
 - `RunnerService.resolve_provider` builds proper `Models::Provider` instead of raw Hash
 - `ProviderRegistry.for` now receives symbol keys for correct provider lookup
@@ -76,7 +82,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced `puts` with `warn` for debug output in ReAct loop
 
 ### Security
-- Added dangerous command blocklist (27 commands including shells, interpreters, network tools)
+- `ContextHydrator` now escapes file paths with `CGI.escapeHTML` to prevent XML injection
+- `Sandbox.capture_diff` validates sandbox directory is within temp directory to prevent path traversal
+- `Provider.merged_config` validates provider name against allowlist before env var interpolation
+- `Sandbox` now explicitly requires `open3` (was implicitly loaded)
+- `ReactAgent::Step` duplicates messages array to prevent caller mutation
+- `OutputFormatter.format_junit` escapes failure message content in XML attributes
 - Path validation to prevent directory traversal in eval paths
 - URL parameter sanitization with `CGI.escape` for all provider endpoints
 - YAML Symbol DoS prevention (`permitted_classes: []`)

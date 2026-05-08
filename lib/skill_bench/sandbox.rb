@@ -2,6 +2,7 @@
 
 require 'fileutils'
 require 'tmpdir'
+require 'open3'
 
 module SkillBench
   # Manages isolated sandbox environments for running agent evaluations.
@@ -57,7 +58,10 @@ module SkillBench
     # @return [String] The git diff, or a message indicating no changes.
     # @raise [SystemCallError] when git commands fail.
     def self.capture_diff(sandbox_dir)
-      # Check if we are in a git repo and have at least one commit
+      sandbox_path = File.realpath(sandbox_dir)
+      tmp_prefix = File.realpath(Dir.tmpdir)
+      raise "Sandbox directory #{sandbox_dir} is outside temp directory" unless sandbox_path.start_with?(tmp_prefix)
+
       return 'No code changes made.' unless File.directory?(File.join(sandbox_dir, '.git'))
 
       raise "Failed to stage changes in #{sandbox_dir}" unless system('git', 'add', '.', chdir: sandbox_dir)

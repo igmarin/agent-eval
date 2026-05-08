@@ -47,7 +47,7 @@ module SkillBench
           opts.on('--runtime TYPE', 'rails, ruby, etc.') { |v| options[:runtime] = v }
           opts.on('-h', '--help', 'Prints this help') do
             puts opts
-            exit
+            return 0
           end
         end
         parser.parse!(argv)

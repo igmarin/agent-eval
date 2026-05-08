@@ -48,7 +48,7 @@ module SkillBench
           opts.on('--template TYPE', 'service_object, concern, active_record_model') { |v| options[:template] = v }
           opts.on('-h', '--help', 'Prints this help') do
             puts opts
-            exit
+            return 0
           end
         end
         parser.parse!(argv)

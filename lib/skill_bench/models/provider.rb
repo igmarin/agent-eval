@@ -8,6 +8,8 @@ module SkillBench
     class Provider
       attr_reader :name, :runtime, :llm, :config
 
+      ALLOWED_PROVIDERS = %w[openai anthropic gemini ollama azure groq deepseek opencode mock].freeze
+
       # Initialize a new Provider
       # @param name [String] Provider name (e.g., "openai")
       # @param runtime [String] Agent runtime (e.g., "opencode")
@@ -24,6 +26,8 @@ module SkillBench
       # @return [Hash] Merged configuration
       # @raise [ArgumentError] if API key is not found in config or env
       def merged_config
+        raise ArgumentError, "Invalid provider name: #{name}" unless ALLOWED_PROVIDERS.include?(name)
+
         env_key = "AGENT_EVAL_#{name.upcase}_API_KEY"
         resolved_key = ENV[env_key] || config[:api_key]
 

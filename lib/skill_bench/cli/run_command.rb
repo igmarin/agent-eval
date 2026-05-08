@@ -50,7 +50,7 @@ module SkillBench
           opts.on('--skill NAME', 'Skill to use') { |v| options[:skill_name] = v }
           opts.on('-h', '--help', 'Prints this help') do
             puts opts
-            exit
+            return 0
           end
         end
       end

@@ -27,7 +27,8 @@ module SkillBench
     #
     # @return [Integer] Exit code.
     def call
-      return HelpPrinter.call if @argv.empty?
+      help = -> { Cli::HelpPrinter.call }
+      return help.call if @argv.empty?
 
       subcommand = @argv.shift
       case subcommand
@@ -36,7 +37,7 @@ module SkillBench
       when 'skill' then Cli::SkillCommand.call(@argv)
       when 'eval'  then Cli::EvalCommand.call(@argv)
       when '-h', '--help', 'help'
-        Cli::HelpPrinter.call
+        help.call
       else
         warn "Unknown subcommand: #{subcommand}"
         warn "Run 'skill-bench help' for usage."

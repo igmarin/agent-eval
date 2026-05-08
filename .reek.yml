@@ -120,6 +120,7 @@ detectors:
       - "SkillBench::CLI#handle_skill_new"
       - "SkillBench::CLI#handle_eval_new"
       - "SkillBench::CLI#print_result"
+      - "SkillBench::Cli::InitCommand#build_parser"
   BooleanParameter:
     exclude:
       - "SkillBench::Commands::Init#self.run"
@@ -139,6 +140,7 @@ detectors:
       - "SkillBench::Clients::ResponseParser#self.valid_message?"
       - "SkillBench::CLI#handle_skill"
       - "SkillBench::CLI#handle_eval"
+      - "SkillBench::Models::Config#to_provider"
   NestedIterators:
     exclude:
       - "SkillBench::EvaluateCommand#parse_options"

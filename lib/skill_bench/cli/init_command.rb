@@ -47,7 +47,7 @@ module SkillBench
           opts.on('--force', 'Overwrite existing config file') { options[:force] = true }
           opts.on('-h', '--help', 'Prints this help') do
             puts opts
-            exit
+            return 0
           end
         end
       end
@@ -59,7 +59,7 @@ module SkillBench
       end
 
       def error_missing_provider
-        providers = SkillBench::ProviderSchemas.names.map { |n| "--#{n}" }.join(', ')
+        providers = SkillBench::ProviderSchemas.names.map { |provider_name| "--#{provider_name}" }.join(', ')
         warn "Error: provider is required. Use one of: #{providers}"
         1
       end

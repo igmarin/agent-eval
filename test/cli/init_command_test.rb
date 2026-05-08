@@ -94,6 +94,7 @@ module SkillBench
         exit_code = InitCommand.call([])
 
         assert_equal 1, exit_code
+        refute_path_exists SkillBench::Config::CONFIG_FILENAME
       end
 
       def test_call_with_force_overwrites_existing
@@ -113,6 +114,7 @@ module SkillBench
         exit_code = InitCommand.call(['--openai'])
 
         assert_equal 1, exit_code
+        assert_equal '{"old": true}', File.read(SkillBench::Config::CONFIG_FILENAME)
       end
     end
   end
