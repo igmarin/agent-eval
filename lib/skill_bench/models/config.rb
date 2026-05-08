@@ -60,6 +60,21 @@ module SkillBench
       def max_execution_time
         @data[:max_execution_time] || 30
       end
+
+      # Builds a Provider model from the current configuration.
+      # Returns a mock provider if provider name is 'mock'.
+      #
+      # @return [SkillBench::Models::Provider] The configured provider
+      def to_provider
+        return nil if provider_name == 'mock'
+
+        Provider.new(
+          name: provider_name,
+          runtime: provider_name,
+          llm: provider_name,
+          config: provider_config
+        )
+      end
     end
   end
 end

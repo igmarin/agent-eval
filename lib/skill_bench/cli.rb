@@ -99,6 +99,7 @@ module SkillBench
       print_result(result)
     rescue StandardError => e
       warn "Error: #{e.message}"
+      warn e.backtrace.first(5).join("\n")
       1
     end
 
@@ -187,11 +188,22 @@ module SkillBench
     end
 
     def print_result(result)
-      if result[:success]
-        puts "Result: #{result[:response][:message]}"
+      score = result[:score]
+      eval_name = result[:eval_name]
+      skill_name = result[:skill_name]
+      provider_name = result[:provider_name]
+
+      if result[:pass]
+        puts "PASS (score: #{score})"
+        puts "  eval: #{eval_name}"
+        puts "  skill: #{skill_name}"
+        puts "  provider: #{provider_name}"
         0
       else
-        warn "Error: #{result.dig(:response, :error, :message)}"
+        warn "FAIL (score: #{score})"
+        warn "  eval: #{eval_name}"
+        warn "  skill: #{skill_name}"
+        warn "  provider: #{provider_name}"
         1
       end
     end

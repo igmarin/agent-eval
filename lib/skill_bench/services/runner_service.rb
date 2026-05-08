@@ -55,17 +55,7 @@ module SkillBench
 
       def resolve_provider
         config = SkillBench::Models::Config.load
-        provider_name = config.provider_name
-
-        return mock_provider if provider_name == 'mock'
-
-        provider_config = config.provider_config
-        SkillBench::Models::Provider.new(
-          name: provider_name,
-          runtime: provider_name,
-          llm: provider_name,
-          config: provider_config
-        )
+        config.to_provider || mock_provider
       end
 
       def mock_provider
