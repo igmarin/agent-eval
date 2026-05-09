@@ -1,6 +1,6 @@
 # Ruby Skill Bench
 
-![Ruby Skill Bench Logo](https://github.com/user-attachments/assets/71688c48-af32-4c6d-87aa-dc2a2865e448)
+![Ruby Skill Bench Logo](https://github.com/user-attachments/assets/056d7ca4-8671-41ec-9efb-e323b73fb135)
 
 *A high-fidelity evaluation engine for benchmarking AI agent skills across any stack (Rails-first, but extensible).*
 
