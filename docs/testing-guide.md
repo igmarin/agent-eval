@@ -129,7 +129,7 @@ This file defines the evaluation dimensions, weights, and thresholds:
 | `context` | string | Yes | Shown to the judge. Describes what the eval measures. |
 | `dimensions` | array | Yes | Array of `{ name, max_score }` objects. Must include all 5 core dimensions. `max_score` values must sum to exactly 100. |
 | `pass_threshold` | integer | No | Minimum context score to pass. Default: 70. |
-| `minimum_delta` | No | Minimum improvement over baseline to pass. Default: 10. |
+| `minimum_delta` | integer | No | Minimum improvement over baseline to pass. Default: 10. |
 | `description` (per dimension) | string | No | Overrides the built-in default description for that dimension. |
 
 **Custom dimension descriptions** are especially useful when a skill has specific hard rules. For example, if your skill requires the `.call` pattern, you can tell the judge exactly what to look for:

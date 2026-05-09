@@ -40,8 +40,7 @@ module SkillBench
 
       mock_provider = Struct.new(:name, :runtime, :llm, :merged_config).new('test', 'test', 'test', {})
       generator.stubs(:load_provider).returns(mock_provider)
-      SkillBench::Clients::ProviderRegistry.stubs(:for).returns(MockLLMClient)
-
+      SkillBench::Clients::ProviderRegistry.expects(:for).at_least_once.returns(MockLLMClient)
       result = generator.call
 
       assert result[:success]
