@@ -4,24 +4,36 @@ Ruby Skill Bench provides a reproducible and isolated environment for testing AI
 
 ## High-Level Flow
 
-1. **`RunnerService`**: The entry point. It resolves the eval, skill, and provider, then orchestrates evaluation execution.
-2. **`Sandbox`**: Creates a temporary directory, copies the task files into it, and initializes a Git repository. This ensures that every run starts from a clean state and that all modifications can be captured via Git diffs.
-3. **`ContextHydrator`**: Reads skill/workflow documentation from the repository and converts it into a standardized XML format injected into the agent's system prompt.
-4. **`ReactAgent`**: An autonomous agent that follows the **Reasoning and Acting** loop. It analyzes the task, decides which tools to use, executes them in the sandbox, and observes the results until the task is complete.
-5. **`ScoringService`**: Computes deterministic composite scores based on test pass rate, timing compliance, and error handling.
-6. **`Client`**: A provider-agnostic abstraction layer. It dispatches API calls to different LLM backends (OpenAI, Anthropic, Gemini, etc.) and handles standardized error reporting.
+1. **`RunnerService`**: The entry point. Resolves eval, skill, and provider, then runs baseline and context agents.
+2. **`Sandbox`**: Creates a temporary directory, copies task files, and initializes a Git repository for clean, reproducible runs.
+3. **`ContextHydrator`**: Loads skill documentation (.md, .rb, .json, .yml, .yaml, .txt up to 50KB each) and wraps it in XML for the agent's system prompt.
+4. **`ReactAgent`**: Autonomous agent following a **Thought → Tool → Observation** loop.
+5. **`EvaluationRunner`**: Orchestrates blind judging — builds `JudgePrompt` for baseline and context outputs, calls `Judge` twice, then computes deltas via `DeltaReport`.
+6. **`DeltaReport`**: Computes per-dimension deltas and determines verdict based on `pass_threshold` and `minimum_delta`.
+7. **`Client`**: Provider-agnostic abstraction for LLM backends.
 
 ## Key Components
 
 ### `SkillBench::Services::RunnerService`
 
 - Resolves eval, skill, and provider configuration.
-- Spawns the agent and collects results.
+- Runs baseline agent (no skill context) and context agent (with skill context).
+- Delegates judging and delta computation to `EvaluationRunner`.
 - Falls back to mock provider when config is unavailable.
+
+### `SkillBench::EvaluationRunner`
+
+- Builds `JudgePrompt` for baseline and context outputs.
+- Calls `Judge` twice (blind scoring).
+- Uses `DeltaReport` to compute per-dimension deltas and final verdict.
+
+### `SkillBench::DeltaReport`
+
+- Computes baseline vs context deltas per dimension.
+- Verdict requires: `context_total >= pass_threshold` AND `total_delta >= minimum_delta`.
 
 ### `SkillBench::CLI` Commands
 
-CLI command handlers for the `skill-bench` executable:
 - `InitCommand` — Creates `skill-bench.json` configuration
 - `RunCommand` — Executes evaluations
 - `SkillCommand` — Scaffolds new skills with templates
@@ -50,6 +62,7 @@ CLI command handlers for the `skill-bench` executable:
 ### `SkillBench::OutputFormatter`
 
 - Formats results as human-readable text, JSON, or JUnit XML
+- Human format displays a dimension table with baseline, context, and delta columns
 - Escapes XML output to prevent injection
 - Provides exit codes for CI/CD integration
 
@@ -59,10 +72,121 @@ CLI command handlers for the `skill-bench` executable:
 - Logs error message and full backtrace
 - Uses `Rails.logger` when available, falls back to `warn`
 
-## Data Structures
+## Data Flow: What Passes Between Components
 
-The evaluator relies on a strict directory mirroring convention:
-- **Skill**: `skills/<category>/<skill_name>`
-- **Eval**: `evals/<eval_name>` or a local path containing `task.md` and `criteria.json`
+Understanding what data moves between components helps debug issues and write better evals.
 
-Skill discovery works recursively, supporting nested directories (e.g., `skills/api/ruby-api-client-integration/SKILL.md`).
+### Flow 1: RunnerService → EvaluationRunner
+
+```ruby
+# RunnerService builds this and passes it to EvaluationRunner.call
+evaluation = {
+  task: "Create a UserRegistrationService...",        # from task.md
+  criteria: <Criteria object>,                         # from criteria.json
+  skill_context: "<agent_context>...SKILL.md...</agent_context>",  # from ContextHydrator
+  baseline_output: '{"result":"...","status":":success"}',        # from baseline agent run
+  context_output: '{"result":"...","status":":success"}'         # from context agent run
+}
+```
+
+### Flow 2: EvaluationRunner → Judge (two calls)
+
+```ruby
+# First call — baseline (no skill context)
+JudgePrompt.call(
+  task: task,
+  criteria: criteria,
+  skill_context: "",        # empty string for baseline
+  agent_output: baseline_output
+)
+
+# Second call — context (with skill context)
+JudgePrompt.call(
+  task: task,
+  criteria: criteria,
+  skill_context: skill_context,   # XML-wrapped SKILL.md
+  agent_output: context_output
+)
+```
+
+### Flow 3: Judge → JudgeResponse
+
+The judge returns a JSON string like:
+
+```json
+{
+  "dimensions": {
+    "correctness": { "score": 28, "max_score": 30, "reasoning": "All requirements met." },
+    "skill_adherence": { "score": 22, "max_score": 25, "reasoning": "Used .call pattern correctly." }
+  },
+  "overall_reasoning": "Solid implementation."
+}
+```
+
+`JudgeResponse` parses this, validates that scores are numeric and within bounds, and returns a structured object.
+
+### Flow 4: DeltaReport → Output
+
+```ruby
+# DeltaReport receives two JudgeResponse objects
+baseline = {
+  'correctness' => { score: 12, max_score: 30 },
+  'skill_adherence' => { score: 5, max_score: 25 }
+}
+
+context = {
+  'correctness' => { score: 28, max_score: 30 },
+  'skill_adherence' => { score: 22, max_score: 25 }
+}
+
+# Produces:
+deltas = {
+  'correctness' => 16,        # 28 - 12
+  'skill_adherence' => 17     # 22 - 5
+}
+
+baseline_total = 17           # 12 + 5
+context_total = 50            # 28 + 22
+verdict = context_total >= pass_threshold && (context_total - baseline_total) >= minimum_delta
+```
+
+## Directory Structure
+
+The evaluator relies on a strict directory convention:
+
+```bash
+project-root/
+├── skill-bench.json              # Provider configuration
+├── skills/
+│   └── my-service/
+│       └── SKILL.md              # Skill instructions
+├── evals/
+│   └── my-first-eval/
+│       ├── task.md               # Agent prompt
+│       └── criteria.json         # Scoring rules
+└── .skill-bench-history.json     # Benchmark history (auto-generated)
+```
+
+### Skill Discovery
+
+Skills are discovered recursively. These are all valid:
+
+```bash
+skills/my-service/SKILL.md
+skills/api/rest-collection/SKILL.md
+skills/workflows/tdd-loop/SKILL.md
+```
+
+The `SkillResolver` walks `skills/` recursively and matches by directory name.
+
+### Eval Discovery
+
+Evals are resolved in this order:
+
+1. If the path contains `/`, use it as-is (e.g., `evals/my-eval`)
+2. Otherwise, prepend `evals/` (e.g., `my-eval` → `evals/my-eval`)
+
+The eval directory must contain at minimum:
+
+- `task.md` — the agent prompt
+- `criteria.json` — the scoring rules (optional; defaults to empty criteria if missing)

@@ -23,19 +23,18 @@ module SkillBench
       #
       # @return [Integer] Exit code
       def call
-        options = {}
+        options = { skill_names: [] }
         parser = build_parser(options)
         parser.parse!(@argv)
 
         eval_name = @argv.shift
         return error_missing_eval unless eval_name
-        return error_missing_skill unless options[:skill_name]
+        return error_missing_skill if options[:skill_names].empty?
 
         options[:eval_name] = eval_name
-        exec_options = options.reject { |key| %i[ci format].include?(key) }
+        exec_options = options.reject { |key| key == :format }
         result = Commands::Run.run(**exec_options)
-        format = options[:ci] ? :json : (options[:format] || :human)
-        ResultPrinter.call(result, format: format)
+        ResultPrinter.call(result, format: options[:format] || :human)
       rescue HelpRequested
         0
       rescue StandardError => e
@@ -48,8 +47,7 @@ module SkillBench
       def build_parser(options)
         OptionParser.new do |opts|
           opts.banner = 'Usage: skill-bench run <eval> [options]'
-          opts.on('--skill NAME', 'Skill to use') { |v| options[:skill_name] = v }
-          opts.on('--ci', 'Output JSON for CI/CD') { options[:ci] = true }
+          opts.on('--skill NAME', 'Skill to use (can be specified multiple times)') { |v| options[:skill_names] << v }
           opts.on('--format FORMAT', 'Output format (human, json, junit)') { |v| options[:format] = v.to_sym }
           opts.on('-h', '--help', 'Prints this help') do
             puts opts

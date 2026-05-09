@@ -13,7 +13,7 @@ module SkillBench
 
         FileUtils.mkdir_p('evals/test-eval')
         File.write('evals/test-eval/task.md', 'Test task')
-        File.write('evals/test-eval/criteria.json', '{"pass": {"score_threshold": 0.8}}')
+        File.write('evals/test-eval/criteria.json', valid_criteria_json)
 
         FileUtils.mkdir_p('skills/test-skill')
         File.write('skills/test-skill/SKILL.md', 'Test skill')
@@ -24,6 +24,11 @@ module SkillBench
           config: {}
         }
         File.write('skill-bench.json', JSON.generate(config))
+
+        SkillBench::EvaluationRunner.stubs(:call).returns({
+                                                            success: true,
+                                                            response: { report: build_report_struct }
+                                                          })
       end
 
       def teardown
@@ -53,6 +58,45 @@ module SkillBench
         exit_code = RunCommand.call(['test-eval'])
 
         assert_equal 1, exit_code
+      end
+
+      def test_call_with_multiple_skills
+        FileUtils.mkdir_p('skills/second-skill')
+        File.write('skills/second-skill/SKILL.md', 'Second skill')
+
+        SkillBench::EvaluationRunner.expects(:call).with do |args|
+          args[:skill_context].include?('Test skill') && args[:skill_context].include?('Second skill')
+        end.returns({
+                      success: true,
+                      response: { report: build_report_struct }
+                    })
+
+        exit_code = RunCommand.call(['test-eval', '--skill=test-skill', '--skill=second-skill'])
+
+        assert_equal 0, exit_code
+      end
+
+      private
+
+      def build_report_struct
+        Struct.new(:verdict, :baseline_total, :context_total, :deltas, keyword_init: true).new(
+          verdict: true, baseline_total: 30, context_total: 80, deltas: { 'correctness' => 16 }
+        )
+      end
+
+      def valid_criteria_json
+        {
+          context: 'Evaluate test',
+          dimensions: [
+            { name: 'correctness', max_score: 30 },
+            { name: 'skill_adherence', max_score: 25 },
+            { name: 'code_quality', max_score: 20 },
+            { name: 'test_coverage', max_score: 15 },
+            { name: 'documentation', max_score: 10 }
+          ],
+          pass_threshold: 70,
+          minimum_delta: 10
+        }.to_json
       end
     end
   end
