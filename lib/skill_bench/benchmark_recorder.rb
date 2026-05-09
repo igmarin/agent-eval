@@ -2,15 +2,16 @@
 
 require 'json'
 require 'pathname'
+require 'time'
 
 module SkillBench
   # Records evaluation results to a local history file and computes trends.
   class BenchmarkRecorder
-    DEFAULT_HISTORY_FILE = File.join(Dir.pwd, '.skill-bench-history.json')
+    DEFAULT_HISTORY_FILE = '.skill-bench-history.json'
 
     # @param history_file [String] Path to the history JSON file.
     def initialize(history_file: DEFAULT_HISTORY_FILE)
-      @history_file = history_file
+      @history_file = File.expand_path(history_file)
     end
 
     # Records an evaluation result.
@@ -69,12 +70,29 @@ module SkillBench
       return [] unless File.exist?(history_file)
 
       JSON.parse(File.read(history_file), symbolize_names: true)
-    rescue JSON::ParserError
+    rescue JSON::ParserError => e
+      backup = read_backup
+      return backup if backup
+
+      SkillBench::ErrorLogger.log_error(e, "History file #{history_file} corrupted")
       []
     end
 
+    def read_backup
+      backup_path = "#{history_file}.bak"
+      return nil unless File.exist?(backup_path)
+
+      JSON.parse(File.read(backup_path), symbolize_names: true)
+    rescue JSON::ParserError
+      nil
+    end
+
     def write_history(history)
-      File.write(history_file, JSON.pretty_generate(history))
+      json = JSON.pretty_generate(history)
+      temp_file = "#{history_file}.tmp"
+      File.write(temp_file, json)
+      File.rename(temp_file, history_file)
+      File.write("#{history_file}.bak", json) if File.exist?(history_file)
     end
 
     def extract_entry(result)

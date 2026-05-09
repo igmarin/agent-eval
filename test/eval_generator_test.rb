@@ -18,10 +18,8 @@ module SkillBench
       FileUtils.rm_rf(@tmp_dir)
     end
 
-    def test_generates_eval_from_skill
+    def test_generates_eval_from_skill_via_mock_fallback
       generator = EvalGenerator.new(skill_name: 'test-skill', eval_name: 'test-skill-eval')
-
-      SkillBench::Clients::ProviderRegistry.stubs(:for).returns(MockLLMClient)
 
       result = generator.call
 
@@ -35,6 +33,20 @@ module SkillBench
       assert_equal 5, criteria['dimensions'].size
       assert criteria['pass_threshold']
       assert criteria['minimum_delta']
+    end
+
+    def test_generates_eval_from_skill_via_provider_client
+      generator = EvalGenerator.new(skill_name: 'test-skill', eval_name: 'test-skill-client')
+
+      mock_provider = Struct.new(:name, :runtime, :llm, :merged_config).new('test', 'test', 'test', {})
+      generator.stubs(:load_provider).returns(mock_provider)
+      SkillBench::Clients::ProviderRegistry.stubs(:for).returns(MockLLMClient)
+
+      result = generator.call
+
+      assert result[:success]
+      assert_path_exists 'evals/test-skill-client/task.md'
+      assert_path_exists 'evals/test-skill-client/criteria.json'
     end
 
     def test_returns_error_when_skill_missing
@@ -56,8 +68,9 @@ module SkillBench
     end
 
     module MockLLMClient
-      def self.call(_system_prompt:, messages:, **)
-        messages.first[:content]
+      # rubocop:disable Lint/UnusedMethodArgument
+      def self.call(system_prompt:, messages:, **)
+        # rubocop:enable Lint/UnusedMethodArgument
         {
           success: true,
           result: <<~JSON,

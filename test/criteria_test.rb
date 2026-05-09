@@ -58,10 +58,13 @@ module SkillBench
     end
 
     def test_returns_error_when_file_missing
-      result = Criteria.call(path: 'nonexistent/criteria.json')
+      Dir.mktmpdir do |dir|
+        missing_path = File.join(dir, 'criteria.json')
+        result = Criteria.call(path: missing_path)
 
-      refute result[:success]
-      assert_match(/does not exist/, result[:response][:error][:message])
+        refute result[:success]
+        assert_match(/does not exist/, result[:response][:error][:message])
+      end
     end
 
     def test_returns_error_on_invalid_json

@@ -75,9 +75,12 @@ module SkillBench
     attr_reader :skill_name, :eval_name
 
     def sanitize_eval_name(name)
-      return nil if name.include?('..') || name.start_with?('/') || name =~ %r{[\\/:]}
+      stripped = name&.strip
+      return nil if stripped.nil? || stripped.empty?
+      return nil if stripped == '.'
+      return nil if stripped.include?('..') || stripped.start_with?('/') || stripped =~ %r{[\\/:]}
 
-      name
+      stripped
     end
 
     def invalid_name_result
@@ -160,11 +163,20 @@ module SkillBench
 
     def build_criteria_hash(data)
       {
-        context: data['context'] || data[:context] || '',
-        dimensions: data['dimensions'] || data[:dimensions] || [],
-        pass_threshold: data['pass_threshold'] || data[:pass_threshold] || 70,
-        minimum_delta: data['minimum_delta'] || data[:minimum_delta] || 10
+        context: data.fetch('context', data[:context] || ''),
+        dimensions: data.fetch('dimensions', data[:dimensions] || []),
+        pass_threshold: extract_numeric(data, 'pass_threshold', 70),
+        minimum_delta: extract_numeric(data, 'minimum_delta', 10)
       }
+    end
+
+    def extract_numeric(data, key, default)
+      return data[key] if data.key?(key)
+
+      sym = key.to_sym
+      return data[sym] if data.key?(sym)
+
+      default
     end
   end
 end

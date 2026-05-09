@@ -71,6 +71,14 @@ module SkillBench
       assert_match(/correctness/, result[:response][:error][:message])
     end
 
+    def test_rejects_negative_score
+      result = JudgeResponse.call(json: negative_score_json)
+
+      refute result[:success]
+      assert_match(/out of bounds/, result[:response][:error][:message])
+      assert_match(/correctness/, result[:response][:error][:message])
+    end
+
     private
 
     def valid_judge_json
@@ -120,6 +128,15 @@ module SkillBench
           correctness: { score: 35, max_score: 30, reasoning: 'Too high' }
         },
         overall_reasoning: 'Out of bounds'
+      }.to_json
+    end
+
+    def negative_score_json
+      {
+        dimensions: {
+          correctness: { score: -5, max_score: 30, reasoning: 'Too low' }
+        },
+        overall_reasoning: 'Negative score'
       }.to_json
     end
   end

@@ -148,6 +148,7 @@ detectors:
       - "SkillBench::Services::RunnerService#load_combined_skill_context"  # Combines multiple skill contexts — skill manipulation is the domain
       - "SkillBench::EvalGenerator#generate_eval"                    # Delegates to provider registry and client — provider interaction is the domain
       - "SkillBench::EvalGenerator#write_eval_files"                 # Writes generated JSON criteria hash — data serialization is the domain
+      - "SkillBench::EvalGenerator#build_criteria_hash"              # Builds criteria hash from parsed JSON — data transformation is the domain
   BooleanParameter:
     exclude:
       - "SkillBench::Commands::Init#self.run"
@@ -178,6 +179,7 @@ detectors:
       - "SkillBench::SourcePathResolver#self.call"
       - "SkillBench::Tools::RunCommand#self.call"
       - "SkillBench::EvalGenerator#generate_eval"           # Guards against missing provider config — nil is a valid state here
+      - "SkillBench::EvalGenerator#sanitize_eval_name"      # Guards against nil/blank input — defensive boundary
       - "SkillBench::Services::RunnerService#load_combined_skill_context"  # Guards against nil skills array — defensive boundary
   NestedIterators:
     exclude:
