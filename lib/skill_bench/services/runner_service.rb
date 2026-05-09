@@ -128,7 +128,7 @@ module SkillBench
       end
 
       def format_output(agent_result)
-        agent_result.to_json
+        agent_result[:result].to_s
       end
 
       def agent_error_result(result, phase)
