@@ -47,6 +47,32 @@ module SkillBench
       assert_match(/criteria.*required/i, result[:response][:error][:message])
     end
 
+    def test_returns_error_when_agent_output_nil
+      criteria = build_criteria
+      result = JudgePrompt.call(
+        task: 'Create API',
+        criteria: criteria,
+        skill_context: 'context',
+        agent_output: nil
+      )
+
+      refute result[:success]
+      assert_match(/agent output.*required/i, result[:response][:error][:message])
+    end
+
+    def test_returns_error_when_skill_context_nil
+      criteria = build_criteria
+      result = JudgePrompt.call(
+        task: 'Create API',
+        criteria: criteria,
+        skill_context: nil,
+        agent_output: 'output'
+      )
+
+      refute result[:success]
+      assert_match(/skill context.*required/i, result[:response][:error][:message])
+    end
+
     private
 
     def build_criteria

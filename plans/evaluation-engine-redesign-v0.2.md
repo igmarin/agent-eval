@@ -59,10 +59,14 @@ If `description` is omitted, the built-in default for that dimension is used.
 
 ## Judge Prompt Structure
 
-The judge is called **twice per eval** — once for baseline output, once for context output (blind judging).
+The judge is called **twice per eval** — once for baseline output (without skill context), once for context output (with skill context). This is **blind judging**: the judge never sees both outputs in the same call, eliminating bias from direct comparison.
 
-Each call receives:
+**Baseline call receives:**
+1. **Task** — `task.md` content
+2. **Criteria** — the full `criteria.json` with dimension names, descriptions, and max_scores
+3. **Agent output** — git diff + structured summary (files changed, commands run, agent reasoning excerpt)
 
+**Context call receives:**
 1. **Task** — `task.md` content
 2. **Criteria** — the full `criteria.json` with dimension names, descriptions, and max_scores
 3. **Skill context** — all text-readable files from the skill directory, wrapped in `<agent_context>` XML
@@ -89,7 +93,7 @@ Each call returns:
 
 ### Human-readable (default)
 
-```
+```text
 ═══════════════════════════════════════════════════════
   Eval: skill-api-rest-collection
   Skill: skills/api/api-rest-collection

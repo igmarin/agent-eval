@@ -2,6 +2,7 @@
 
 require 'json'
 require 'pathname'
+require_relative '../criteria'
 
 module SkillBench
   module Models

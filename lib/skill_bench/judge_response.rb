@@ -80,11 +80,17 @@ module SkillBench
 
       dims.each do |name, dim|
         score = dim['score'] || dim[:score]
-        return missing_score_result if score.nil?
+        return missing_score_result(name) if score.nil?
+
+        numeric_score = parse_numeric(score)
+        return invalid_score_result(name, score) if numeric_score.nil?
+
+        max_score = dim['max_score'] || dim[:max_score]
+        return out_of_bounds_result(name, numeric_score, max_score) if max_score && (numeric_score < 0 || numeric_score > max_score)
 
         dimensions[name] = {
-          score: score,
-          max_score: dim['max_score'] || dim[:max_score],
+          score: numeric_score,
+          max_score: max_score,
           reasoning: dim['reasoning'] || dim[:reasoning] || ''
         }
       end
@@ -92,8 +98,24 @@ module SkillBench
       { success: true, response: { dimensions: dimensions } }
     end
 
-    def missing_score_result
-      { success: false, response: { error: { message: 'Judge dimension missing score' } } }
+    def parse_numeric(value)
+      return value if value.is_a?(Numeric)
+
+      Float(value)
+    rescue ArgumentError, TypeError
+      nil
+    end
+
+    def missing_score_result(name)
+      { success: false, response: { error: { message: "Judge dimension '#{name}' missing score" } } }
+    end
+
+    def invalid_score_result(name, score)
+      { success: false, response: { error: { message: "Judge dimension '#{name}' has invalid score: #{score.inspect}" } } }
+    end
+
+    def out_of_bounds_result(name, score, max_score)
+      { success: false, response: { error: { message: "Judge dimension '#{name}' score #{score} out of bounds (0..#{max_score})" } } }
     end
   end
 end

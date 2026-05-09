@@ -34,6 +34,8 @@ module SkillBench
     def call
       return missing_task_result if task.nil? || task.strip.empty?
       return missing_criteria_result if criteria.nil?
+      return missing_agent_output_result if agent_output.nil?
+      return missing_skill_context_result if skill_context.nil?
 
       prompt = assemble_prompt
       { success: true, response: { prompt: prompt } }
@@ -52,6 +54,14 @@ module SkillBench
 
     def missing_criteria_result
       { success: false, response: { error: { message: 'Criteria is required' } } }
+    end
+
+    def missing_agent_output_result
+      { success: false, response: { error: { message: 'Agent output is required' } } }
+    end
+
+    def missing_skill_context_result
+      { success: false, response: { error: { message: 'Skill context is required' } } }
     end
 
     def assemble_prompt

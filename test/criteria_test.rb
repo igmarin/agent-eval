@@ -45,6 +45,18 @@ module SkillBench
       end
     end
 
+    def test_returns_error_when_dimensions_have_nil_max_score
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, 'criteria.json'), criteria_with_nil_max_score_json)
+
+        result = Criteria.call(path: File.join(dir, 'criteria.json'))
+
+        refute result[:success]
+        assert_match(/correctness/, result[:response][:error][:message])
+        assert_match(/missing or invalid max_score/, result[:response][:error][:message])
+      end
+    end
+
     def test_returns_error_when_file_missing
       result = Criteria.call(path: 'nonexistent/criteria.json')
 
@@ -101,6 +113,18 @@ module SkillBench
         dimensions: [
           { name: 'correctness', max_score: 20 },
           { name: 'skill_adherence', max_score: 20 }
+        ],
+        pass_threshold: 70,
+        minimum_delta: 10
+      }.to_json
+    end
+
+    def criteria_with_nil_max_score_json
+      {
+        context: 'Evaluate API',
+        dimensions: [
+          { name: 'correctness', max_score: nil },
+          { name: 'skill_adherence', max_score: 25 }
         ],
         pass_threshold: 70,
         minimum_delta: 10

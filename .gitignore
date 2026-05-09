@@ -15,4 +15,3 @@ gems-report.csv
 .github/hooks/rtk-rewrite.json
 *.gem
 examples/
-examples/

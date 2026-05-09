@@ -92,12 +92,27 @@ module SkillBench
     end
 
     def validate_dimensions(dimensions)
-      total = dimensions.sum { |d| d.max_score.to_i }
+      invalid = invalid_dimensions(dimensions)
+      return invalid_max_score_result(invalid) unless invalid.empty?
+
+      total = dimensions.sum(&:max_score)
       return { success: true, response: {} } if total == 100
 
       {
         success: false,
         response: { error: { message: "Dimension max_scores must sum to 100, got #{total}" } }
+      }
+    end
+
+    def invalid_dimensions(dimensions)
+      dimensions.reject { |d| d.max_score.is_a?(Numeric) }
+    end
+
+    def invalid_max_score_result(invalid)
+      names = invalid.map(&:name).join(', ')
+      {
+        success: false,
+        response: { error: { message: "Dimensions missing or invalid max_score: #{names}" } }
       }
     end
 

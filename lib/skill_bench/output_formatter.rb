@@ -98,14 +98,16 @@ module SkillBench
         label = dim ? "#{humanize(name)} (#{max_score})" : humanize(name)
         baseline_score = report.baseline_scores[name]
         context_score = report.context_scores[name]
-        lines << Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>+7s',
-                               label: label, baseline: baseline_score, context: context_score, delta: "+#{delta}")
+        lines << Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>7s',
+                               label: label, baseline: baseline_score, context: context_score,
+                               delta: delta_str(delta))
       end
 
       lines << '  ──────────────────────── ───────── ───────── ───────'
-      lines << Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>+7s',
+      lines << Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>7s',
                              label: 'TOTAL', baseline: "#{report.baseline_total}/100",
-                             context: "#{report.context_total}/100", delta: "+#{report.deltas.values.sum}")
+                             context: "#{report.context_total}/100",
+                             delta: delta_str(report.deltas.values.sum))
       lines << ''
 
       status = report.verdict ? 'PASS' : 'FAIL'
@@ -122,6 +124,11 @@ module SkillBench
     #
     # @param name [String] The dimension name.
     # @return [String] Human-readable name.
+    def self.delta_str(delta)
+      delta >= 0 ? "+#{delta}" : delta.to_s
+    end
+    private_class_method :delta_str
+
     def self.humanize(name)
       name.to_s.split('_').map(&:capitalize).join(' ')
     end

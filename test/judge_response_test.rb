@@ -55,6 +55,22 @@ module SkillBench
       assert_in_delta(22.5, response.dimensions['skill_adherence'][:score])
     end
 
+    def test_rejects_non_numeric_score
+      result = JudgeResponse.call(json: non_numeric_score_json)
+
+      refute result[:success]
+      assert_match(/invalid score/, result[:response][:error][:message])
+      assert_match(/correctness/, result[:response][:error][:message])
+    end
+
+    def test_rejects_score_out_of_bounds
+      result = JudgeResponse.call(json: out_of_bounds_score_json)
+
+      refute result[:success]
+      assert_match(/out of bounds/, result[:response][:error][:message])
+      assert_match(/correctness/, result[:response][:error][:message])
+    end
+
     private
 
     def valid_judge_json
@@ -86,6 +102,24 @@ module SkillBench
           skill_adherence: { score: 22.5, max_score: 25, reasoning: 'Followed' }
         },
         overall_reasoning: 'Mixed'
+      }.to_json
+    end
+
+    def non_numeric_score_json
+      {
+        dimensions: {
+          correctness: { score: 'abc', max_score: 30, reasoning: 'Bad' }
+        },
+        overall_reasoning: 'Invalid'
+      }.to_json
+    end
+
+    def out_of_bounds_score_json
+      {
+        dimensions: {
+          correctness: { score: 35, max_score: 30, reasoning: 'Too high' }
+        },
+        overall_reasoning: 'Out of bounds'
       }.to_json
     end
   end

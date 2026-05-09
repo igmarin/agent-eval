@@ -41,7 +41,10 @@ module SkillBench
         provider = resolve_provider
 
         baseline_output = spawn_agent(evaluation, nil, provider)
+        return agent_error_result(baseline_output, 'baseline') if baseline_output[:status] == :error
+
         context_output = spawn_agent(evaluation, skill, provider)
+        return agent_error_result(context_output, 'context') if context_output[:status] == :error
 
         criteria = evaluation.criteria
         skill_context = load_skill_context(skill)
@@ -109,6 +112,17 @@ module SkillBench
 
       def format_output(agent_result)
         agent_result.to_json
+      end
+
+      def agent_error_result(result, phase)
+        {
+          success: false,
+          response: {
+            error: {
+              message: "#{phase.capitalize} agent failed: #{result[:raw_response]&.dig(:error, :message) || 'unknown error'}"
+            }
+          }
+        }
       end
     end
   end
