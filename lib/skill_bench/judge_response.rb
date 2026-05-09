@@ -79,23 +79,35 @@ module SkillBench
       dimensions = {}
 
       dims.each do |name, dim|
-        score = dim['score'] || dim[:score]
-        return missing_score_result(name) if score.nil?
+        validated = validate_dimension(name, dim)
+        return validated unless validated[:success]
 
-        numeric_score = parse_numeric(score)
-        return invalid_score_result(name, score) if numeric_score.nil?
-
-        max_score = dim['max_score'] || dim[:max_score]
-        return out_of_bounds_result(name, numeric_score, max_score) if max_score && (numeric_score < 0 || numeric_score > max_score)
-
-        dimensions[name] = {
-          score: numeric_score,
-          max_score: max_score,
-          reasoning: dim['reasoning'] || dim[:reasoning] || ''
-        }
+        dimensions[name] = validated[:response][:dimension]
       end
 
       { success: true, response: { dimensions: dimensions } }
+    end
+
+    def validate_dimension(name, dim)
+      score = dim['score'] || dim[:score]
+      return missing_score_result(name) if score.nil?
+
+      numeric_score = parse_numeric(score)
+      return invalid_score_result(name, score) if numeric_score.nil?
+
+      max_score = dim['max_score'] || dim[:max_score]
+      return out_of_bounds_result(name, numeric_score, max_score) if max_score && (numeric_score.negative? || numeric_score > max_score)
+
+      {
+        success: true,
+        response: {
+          dimension: {
+            score: numeric_score,
+            max_score: max_score,
+            reasoning: dim['reasoning'] || dim[:reasoning] || ''
+          }
+        }
+      }
     end
 
     def parse_numeric(value)

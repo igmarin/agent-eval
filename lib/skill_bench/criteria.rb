@@ -47,6 +47,9 @@ module SkillBench
       raw_dimensions = data['dimensions'] || data[:dimensions] || []
       dimensions = build_dimensions(raw_dimensions)
 
+      core_validation = validate_core_dimensions(dimensions)
+      return core_validation unless core_validation[:success]
+
       validation = validate_dimensions(dimensions)
       return validation unless validation[:success]
 
@@ -113,6 +116,18 @@ module SkillBench
       {
         success: false,
         response: { error: { message: "Dimensions missing or invalid max_score: #{names}" } }
+      }
+    end
+
+    def validate_core_dimensions(dimensions)
+      core_names = DEFAULT_DIMENSIONS.map(&:name)
+      present_names = dimensions.map(&:name)
+      missing = core_names - present_names
+      return { success: true, response: {} } if missing.empty?
+
+      {
+        success: false,
+        response: { error: { message: "missing required core dimensions: #{missing.join(', ')}" } }
       }
     end
 

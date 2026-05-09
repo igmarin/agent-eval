@@ -50,7 +50,7 @@ module SkillBench
 
       result = Services::RunnerService.call(
         eval_name: 'integration-eval',
-        skill_name: 'integration-skill'
+        skill_names: ['integration-skill']
       )
 
       assert result[:success]

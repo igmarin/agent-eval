@@ -93,22 +93,13 @@ module SkillBench
       lines << '  ──────────────────────── ───────── ───────── ───────'
 
       report.deltas.each do |name, delta|
-        dim = report.criteria.dimensions.find { |d| d.name == name }
-        max_score = dim&.max_score || ''
-        label = dim ? "#{humanize(name)} (#{max_score})" : humanize(name)
-        baseline_score = report.baseline_scores[name]
-        context_score = report.context_scores[name]
-        lines << Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>7s',
-                               label: label, baseline: baseline_score, context: context_score,
-                               delta: delta_str(delta))
+        lines << format_dimension_row(name, delta, report)
       end
 
       lines << '  ──────────────────────── ───────── ───────── ───────'
-      lines << Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>7s',
-                             label: 'TOTAL', baseline: "#{report.baseline_total}/100",
-                             context: "#{report.context_total}/100",
-                             delta: delta_str(report.deltas.values.sum))
+      lines << format_total_row(report)
       lines << ''
+      lines << format_trend(result[:trend]) if result[:trend]
 
       status = report.verdict ? 'PASS' : 'FAIL'
       threshold = report.criteria.pass_threshold
@@ -120,15 +111,74 @@ module SkillBench
     end
     private_class_method :format_delta_report
 
-    # Converts a snake_case name to Title Case.
+    # Formats a single dimension row for the delta report table.
     #
     # @param name [String] The dimension name.
-    # @return [String] Human-readable name.
+    # @param delta [Numeric] The delta value.
+    # @param report [SkillBench::DeltaReport] The delta report.
+    # @return [String] Formatted row string.
+    def self.format_dimension_row(name, delta, report)
+      dim = report.criteria.dimensions.find { |d| d.name == name }
+      max_score = dim&.max_score || ''
+      humanized = humanize(name)
+      label = dim ? "#{humanized} (#{max_score})" : humanized
+      baseline_score = report.baseline_scores[name]
+      context_score = report.context_scores[name]
+      Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>7s',
+                    label: label, baseline: baseline_score, context: context_score,
+                    delta: delta_str(delta))
+    end
+    private_class_method :format_dimension_row
+
+    # Formats the total row for the delta report table.
+    #
+    # @param report [SkillBench::DeltaReport] The delta report.
+    # @return [String] Formatted total row string.
+    def self.format_total_row(report)
+      Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>7s',
+                    label: 'TOTAL', baseline: "#{report.baseline_total}/100",
+                    context: "#{report.context_total}/100",
+                    delta: delta_str(report.deltas.values.sum))
+    end
+    private_class_method :format_total_row
+
+    # Formats a numeric delta with a +/- sign.
+    #
+    # @param delta [Numeric] The delta value.
+    # @return [String] Formatted delta string.
     def self.delta_str(delta)
       delta >= 0 ? "+#{delta}" : delta.to_s
     end
     private_class_method :delta_str
 
+    # Formats the trend line for display.
+    #
+    # @param trend [Hash] Trend data with :baseline_trend, :context_trend, :baseline_delta, :context_delta.
+    # @return [String, nil] Formatted trend line or nil.
+    def self.format_trend(trend)
+      return nil unless trend
+
+      baseline_icon = trend_icon(trend[:baseline_trend])
+      context_icon = trend_icon(trend[:context_trend])
+      baseline_delta = trend[:baseline_delta]
+      context_delta = trend[:context_delta]
+      "  TREND: baseline #{baseline_icon} (#{delta_str(baseline_delta)}), context #{context_icon} (#{delta_str(context_delta)})"
+    end
+    private_class_method :format_trend
+
+    # Returns the Unicode arrow icon for a trend direction.
+    #
+    # @param direction [Symbol] :improved, :regressed, or :unchanged.
+    # @return [String] Arrow icon.
+    def self.trend_icon(direction)
+      { improved: '↑', regressed: '↓', unchanged: '→' }.fetch(direction, '?')
+    end
+    private_class_method :trend_icon
+
+    # Converts a snake_case name to Title Case.
+    #
+    # @param name [String] The dimension name.
+    # @return [String] Human-readable name.
     def self.humanize(name)
       name.to_s.split('_').map(&:capitalize).join(' ')
     end

@@ -7,6 +7,7 @@ require_relative '../models/config'
 require_relative '../models/provider'
 require_relative '../clients/all'
 require_relative 'skill_resolver'
+require_relative '../benchmark_recorder'
 
 module SkillBench
   module Services
@@ -19,56 +20,65 @@ module SkillBench
       # Runs an eval with the given parameters.
       #
       # @param eval_name [String] Name or path of the eval to run
-      # @param skill_name [String] Name of the skill to use
+      # @param skill_names [Array<String>] Names of the skills to use
       # @return [Hash] Result from EvaluationRunner
-      def self.call(eval_name:, skill_name:)
-        new(eval_name: eval_name, skill_name: skill_name).call
+      def self.call(eval_name:, skill_names:)
+        new(eval_name: eval_name, skill_names: skill_names).call
       end
 
       # @param eval_name [String] Name or path of the eval
-      # @param skill_name [String] Name of the skill
-      def initialize(eval_name:, skill_name:)
+      # @param skill_names [Array<String>] Names of the skills
+      def initialize(eval_name:, skill_names:)
         @eval_name = eval_name
-        @skill_name = skill_name
+        @skill_names = skill_names
       end
 
       # Executes the eval: resolves entities, runs baseline and context, evaluates.
       #
-      # @return [Hash] Evaluation result with deltas and verdict
+      # @return [Hash] Evaluation result with deltas and verdict.
+      # @raise [Errno::ENOENT] when the eval directory does not exist.
+      # @raise [ArgumentError] when a skill cannot be resolved.
       def call
         evaluation = resolve_eval
-        skill = resolve_skill
+        skills = resolve_skills
         provider = resolve_provider
 
         baseline_output = spawn_agent(evaluation, nil, provider)
         return agent_error_result(baseline_output, 'baseline') if baseline_output[:status] == :error
 
-        context_output = spawn_agent(evaluation, skill, provider)
+        context_output = spawn_agent(evaluation, skills, provider)
         return agent_error_result(context_output, 'context') if context_output[:status] == :error
 
         criteria = evaluation.criteria
-        skill_context = load_skill_context(skill)
+        skill_context = load_combined_skill_context(skills)
 
-        EvaluationRunner.call(
+        result = EvaluationRunner.call(
           task: evaluation.task,
           criteria: criteria,
           skill_context: skill_context,
           baseline_output: format_output(baseline_output),
           context_output: format_output(context_output)
         )
+
+        return result unless result[:success]
+
+        trend = record_and_compute_trend(result)
+        return result unless trend
+
+        { success: true, response: result[:response].merge(trend: trend) }
       end
 
       private
 
-      attr_reader :eval_name, :skill_name
+      attr_reader :eval_name, :skill_names
 
       def resolve_eval
         eval_path = eval_name.include?('/') ? eval_name : "evals/#{eval_name}"
         SkillBench::Models::Eval.load(eval_path)
       end
 
-      def resolve_skill
-        Services::SkillResolver.call(skill_name)
+      def resolve_skills
+        skill_names.map { |name| Services::SkillResolver.call(name) }
       end
 
       def resolve_provider
@@ -80,7 +90,7 @@ module SkillBench
         MOCK_PROVIDER.new('mock', 'mock', 'mock', {})
       end
 
-      def spawn_agent(evaluation, skill, provider)
+      def spawn_agent(evaluation, skills, provider)
         return { result: 'mock result', status: :success } if provider.name == 'mock'
 
         client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime.to_sym)
@@ -88,7 +98,7 @@ module SkillBench
         options = config.dup
         options[:model] ||= provider.llm
 
-        system_prompt = skill ? load_skill_context(skill) : ''
+        system_prompt = skills ? load_combined_skill_context(skills) : ''
 
         response = client_class.call(
           system_prompt: system_prompt,
@@ -103,6 +113,13 @@ module SkillBench
           usage: response[:usage],
           raw_response: response[:response]
         }
+      end
+
+      def load_combined_skill_context(skills)
+        return '' if skills.nil? || skills.empty?
+
+        contexts = skills.map { |skill| load_skill_context(skill) }
+        contexts.reject(&:empty?).join("\n\n#{'=' * 40}\n\n")
       end
 
       def load_skill_context(skill)
@@ -123,6 +140,17 @@ module SkillBench
             }
           }
         }
+      end
+
+      def record_and_compute_trend(result)
+        recorder = BenchmarkRecorder.new
+        enriched = result.merge(eval_name: eval_name, skill_names: skill_names)
+        trend = recorder.trend_for(enriched)
+        recorder.record(enriched)
+        trend
+      rescue StandardError => e
+        SkillBench::ErrorLogger.log_error(e, 'Benchmark recording failed')
+        nil
       end
     end
   end

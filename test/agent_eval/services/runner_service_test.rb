@@ -44,7 +44,7 @@ module SkillBench
 
         result = RunnerService.call(
           eval_name: 'test-eval',
-          skill_name: 'test-skill'
+          skill_names: ['test-skill']
         )
 
         assert result[:success]
@@ -57,7 +57,7 @@ module SkillBench
         assert_raises(Errno::ENOENT) do
           RunnerService.call(
             eval_name: 'nonexistent',
-            skill_name: 'test-skill'
+            skill_names: ['test-skill']
           )
         end
       end
@@ -68,7 +68,7 @@ module SkillBench
         assert_raises(ArgumentError) do
           RunnerService.call(
             eval_name: 'test-eval',
-            skill_name: 'nonexistent'
+            skill_names: ['nonexistent']
           )
         end
       end
@@ -79,7 +79,7 @@ module SkillBench
         assert_raises(Errno::ENOENT) do
           RunnerService.call(
             eval_name: 'test-eval',
-            skill_name: 'test-skill'
+            skill_names: ['test-skill']
           )
         end
       end
@@ -99,7 +99,7 @@ module SkillBench
 
         result = RunnerService.call(
           eval_name: 'evals/test-eval',
-          skill_name: 'test-skill'
+          skill_names: ['test-skill']
         )
 
         assert result[:success]

@@ -27,7 +27,7 @@ module SkillBench
 
         SkillBench::EvaluationRunner.stubs(:call).returns({
                                                             success: true,
-                                                            response: { report: Struct.new(:verdict, keyword_init: true).new(verdict: true) }
+                                                            response: { report: build_report_struct }
                                                           })
       end
 
@@ -60,7 +60,29 @@ module SkillBench
         assert_equal 1, exit_code
       end
 
+      def test_call_with_multiple_skills
+        FileUtils.mkdir_p('skills/second-skill')
+        File.write('skills/second-skill/SKILL.md', 'Second skill')
+
+        SkillBench::EvaluationRunner.expects(:call).with do |args|
+          args[:skill_context].include?('Test skill') && args[:skill_context].include?('Second skill')
+        end.returns({
+                      success: true,
+                      response: { report: build_report_struct }
+                    })
+
+        exit_code = RunCommand.call(['test-eval', '--skill=test-skill', '--skill=second-skill'])
+
+        assert_equal 0, exit_code
+      end
+
       private
+
+      def build_report_struct
+        Struct.new(:verdict, :baseline_total, :context_total, :deltas, keyword_init: true).new(
+          verdict: true, baseline_total: 30, context_total: 80, deltas: { 'correctness' => 16 }
+        )
+      end
 
       def valid_criteria_json
         {

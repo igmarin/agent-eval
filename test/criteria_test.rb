@@ -75,6 +75,44 @@ module SkillBench
       end
     end
 
+    def test_accepts_custom_dimensions_beyond_core
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, 'criteria.json'), criteria_with_custom_dimension_json)
+
+        result = Criteria.call(path: File.join(dir, 'criteria.json'))
+
+        assert result[:success]
+        criteria = result[:response][:criteria]
+
+        assert_equal 6, criteria.dimensions.size
+        assert_includes criteria.dimensions.map(&:name), 'performance'
+        assert_equal 'Is the solution performant and scalable?', criteria.dimensions.find { |d| d.name == 'performance' }&.description
+      end
+    end
+
+    def test_returns_error_when_core_dimension_missing
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, 'criteria.json'), criteria_missing_core_json)
+
+        result = Criteria.call(path: File.join(dir, 'criteria.json'))
+
+        refute result[:success]
+        assert_match(/missing required core dimensions/, result[:response][:error][:message])
+        assert_match(/documentation/, result[:response][:error][:message])
+      end
+    end
+
+    def test_returns_error_when_custom_and_core_sum_exceeds_one_hundred
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, 'criteria.json'), criteria_custom_over_sum_json)
+
+        result = Criteria.call(path: File.join(dir, 'criteria.json'))
+
+        refute result[:success]
+        assert_match(/must sum to 100/, result[:response][:error][:message])
+      end
+    end
+
     private
 
     def valid_criteria_json
@@ -112,7 +150,10 @@ module SkillBench
         context: 'Evaluate API',
         dimensions: [
           { name: 'correctness', max_score: 20 },
-          { name: 'skill_adherence', max_score: 20 }
+          { name: 'skill_adherence', max_score: 20 },
+          { name: 'code_quality', max_score: 20 },
+          { name: 'test_coverage', max_score: 20 },
+          { name: 'documentation', max_score: 15 }
         ],
         pass_threshold: 70,
         minimum_delta: 10
@@ -124,7 +165,56 @@ module SkillBench
         context: 'Evaluate API',
         dimensions: [
           { name: 'correctness', max_score: nil },
-          { name: 'skill_adherence', max_score: 25 }
+          { name: 'skill_adherence', max_score: 25 },
+          { name: 'code_quality', max_score: 20 },
+          { name: 'test_coverage', max_score: 15 },
+          { name: 'documentation', max_score: 10 }
+        ],
+        pass_threshold: 70,
+        minimum_delta: 10
+      }.to_json
+    end
+
+    def criteria_with_custom_dimension_json
+      {
+        context: 'Evaluate API',
+        dimensions: [
+          { name: 'correctness', max_score: 25 },
+          { name: 'skill_adherence', max_score: 20 },
+          { name: 'code_quality', max_score: 15 },
+          { name: 'test_coverage', max_score: 15 },
+          { name: 'documentation', max_score: 10 },
+          { name: 'performance', max_score: 15, description: 'Is the solution performant and scalable?' }
+        ],
+        pass_threshold: 70,
+        minimum_delta: 10
+      }.to_json
+    end
+
+    def criteria_missing_core_json
+      {
+        context: 'Evaluate API',
+        dimensions: [
+          { name: 'correctness', max_score: 30 },
+          { name: 'skill_adherence', max_score: 25 },
+          { name: 'code_quality', max_score: 20 },
+          { name: 'test_coverage', max_score: 25 }
+        ],
+        pass_threshold: 70,
+        minimum_delta: 10
+      }.to_json
+    end
+
+    def criteria_custom_over_sum_json
+      {
+        context: 'Evaluate API',
+        dimensions: [
+          { name: 'correctness', max_score: 30 },
+          { name: 'skill_adherence', max_score: 25 },
+          { name: 'code_quality', max_score: 20 },
+          { name: 'test_coverage', max_score: 15 },
+          { name: 'documentation', max_score: 10 },
+          { name: 'performance', max_score: 15 }
         ],
         pass_threshold: 70,
         minimum_delta: 10
