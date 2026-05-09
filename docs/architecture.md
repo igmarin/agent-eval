@@ -72,10 +72,121 @@ Ruby Skill Bench provides a reproducible and isolated environment for testing AI
 - Logs error message and full backtrace
 - Uses `Rails.logger` when available, falls back to `warn`
 
-## Data Structures
+## Data Flow: What Passes Between Components
 
-The evaluator relies on a strict directory mirroring convention:
-- **Skill**: `skills/<category>/<skill_name>`
-- **Eval**: `evals/<eval_name>` or a local path containing `task.md` and `criteria.json`
+Understanding what data moves between components helps debug issues and write better evals.
 
-Skill discovery works recursively, supporting nested directories (e.g., `skills/api/ruby-api-client-integration/SKILL.md`).
+### Flow 1: RunnerService → EvaluationRunner
+
+```ruby
+# RunnerService builds this and passes it to EvaluationRunner.call
+evaluation = {
+  task: "Create a UserRegistrationService...",        # from task.md
+  criteria: <Criteria object>,                         # from criteria.json
+  skill_context: "<agent_context>...SKILL.md...</agent_context>",  # from ContextHydrator
+  baseline_output: '{"result":"...","status":":success"}',        # from baseline agent run
+  context_output: '{"result":"...","status":":success"}'         # from context agent run
+}
+```
+
+### Flow 2: EvaluationRunner → Judge (two calls)
+
+```ruby
+# First call — baseline (no skill context)
+JudgePrompt.call(
+  task: task,
+  criteria: criteria,
+  skill_context: "",        # empty string for baseline
+  agent_output: baseline_output
+)
+
+# Second call — context (with skill context)
+JudgePrompt.call(
+  task: task,
+  criteria: criteria,
+  skill_context: skill_context,   # XML-wrapped SKILL.md
+  agent_output: context_output
+)
+```
+
+### Flow 3: Judge → JudgeResponse
+
+The judge returns a JSON string like:
+
+```json
+{
+  "dimensions": {
+    "correctness": { "score": 28, "max_score": 30, "reasoning": "All requirements met." },
+    "skill_adherence": { "score": 22, "max_score": 25, "reasoning": "Used .call pattern correctly." }
+  },
+  "overall_reasoning": "Solid implementation."
+}
+```
+
+`JudgeResponse` parses this, validates that scores are numeric and within bounds, and returns a structured object.
+
+### Flow 4: DeltaReport → Output
+
+```ruby
+# DeltaReport receives two JudgeResponse objects
+baseline = {
+  'correctness' => { score: 12, max_score: 30 },
+  'skill_adherence' => { score: 5, max_score: 25 }
+}
+
+context = {
+  'correctness' => { score: 28, max_score: 30 },
+  'skill_adherence' => { score: 22, max_score: 25 }
+}
+
+# Produces:
+deltas = {
+  'correctness' => 16,        # 28 - 12
+  'skill_adherence' => 17     # 22 - 5
+}
+
+baseline_total = 17           # 12 + 5
+context_total = 50            # 28 + 22
+verdict = context_total >= pass_threshold && (context_total - baseline_total) >= minimum_delta
+```
+
+## Directory Structure
+
+The evaluator relies on a strict directory convention:
+
+```bash
+project-root/
+├── skill-bench.json              # Provider configuration
+├── skills/
+│   └── my-service/
+│       └── SKILL.md              # Skill instructions
+├── evals/
+│   └── my-first-eval/
+│       ├── task.md               # Agent prompt
+│       └── criteria.json         # Scoring rules
+└── .skill-bench-history.json     # Benchmark history (auto-generated)
+```
+
+### Skill Discovery
+
+Skills are discovered recursively. These are all valid:
+
+```bash
+skills/my-service/SKILL.md
+skills/api/rest-collection/SKILL.md
+skills/workflows/tdd-loop/SKILL.md
+```
+
+The `SkillResolver` walks `skills/` recursively and matches by directory name.
+
+### Eval Discovery
+
+Evals are resolved in this order:
+
+1. If the path contains `/`, use it as-is (e.g., `evals/my-eval`)
+2. Otherwise, prepend `evals/` (e.g., `my-eval` → `evals/my-eval`)
+
+The eval directory must contain at minimum:
+
+- `task.md` — the agent prompt
+- `criteria.json` — the scoring rules (optional; defaults to empty criteria if missing)
