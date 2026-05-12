@@ -40,7 +40,8 @@ module SkillBench
       }.freeze,
       opencode: {
         api_key: nil,
-        model: 'opencode-model'
+        model: 'opencode-model',
+        base_url: nil
       }.freeze,
       openrouter: {
         api_key: nil,

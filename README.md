@@ -46,9 +46,11 @@ CLI / API → RunnerService → Sandbox + ReAct Agent → LLM Client Layer → P
 | **Ollama** | — | `:ollama` |
 | **Groq** | `SKILL_BENCH_GROQ_API_KEY` | `:groq` |
 | **DeepSeek** | `SKILL_BENCH_DEEPSEEK_API_KEY` | `:deepseek` |
-| **OpenCode** | `SKILL_BENCH_OPENCODE_API_KEY` | `:opencode` |
+| **OpenCode** | `SKILL_BENCH_OPENCODE_API_KEY`, `SKILL_BENCH_OPENCODE_BASE_URL` | `:opencode` |
 
 > **Note:** Environment variables are loaded automatically. You can also configure provider settings in `skill-bench.json` (created by `skill-bench init`).
+>
+> **OpenCode requires a custom `base_url`:** OpenCode does not host a public LLM API. You must provide your own OpenAI-compatible endpoint (e.g. a LiteLLM proxy, self-hosted vLLM, or company gateway) via the `base_url` config key. Without it, the provider will fail with "Base URL not set for Opencode".
 
 ### Command Allowlist
 
@@ -242,6 +244,167 @@ Both skill contexts are concatenated and sent to the agent. The judge evaluates 
 - Human-readable (default)
 - JSON: `--format json`
 - JUnit XML: `--format junit`
+
+---
+
+## File Reference: What Lives on Disk
+
+SkillBench creates and manages three files in your project. Understanding them helps you iterate faster.
+
+### `skill-bench.json` — Your Configuration
+
+**What it is:** The config file you create with `skill-bench init`. It tells SkillBench which LLM provider to use, your API key, timeout settings, and which shell commands the agent is allowed to run.
+
+**Who edits it:** You. This is the only file SkillBench expects you to write by hand.
+
+**Typical contents:**
+
+```json
+{
+  "provider": "openai",
+  "max_execution_time": 300,
+  "allowed_commands": ["rspec", "bundle", "ruby", "git"],
+  "config": {
+    "api_key": "sk-...",
+    "model": "gpt-4o"
+  }
+}
+```
+
+**Key rules:**
+- The file is loaded from **local directory first**, then `~/.skill-bench.json` (user-wide), then environment variables. Later sources override earlier ones.
+- If `api_key` is `null`, SkillBench looks for the matching environment variable (e.g. `SKILL_BENCH_OPENAI_API_KEY`).
+- `allowed_commands` is a **safeguard**, not a convenience. By default the agent cannot run *any* shell command. Add only what your evals need.
+
+---
+
+### `.skill-bench-history.json` — Evaluation History (Auto-Generated)
+
+**What it is:** A JSON array that records every successful eval run. SkillBench appends to it automatically. It stores the timestamp, eval name, skill names, scores, and deltas so you can track improvement over time.
+
+**Who edits it:** Nobody. SkillBench writes it; you read it. If you delete it, you lose your trend data.
+
+**Example entry:**
+
+```json
+[
+  {
+    "timestamp": "2026-05-12T10:30:00Z",
+    "eval_name": "my-first-eval",
+    "skill_names": ["my-service"],
+    "verdict": true,
+    "baseline_total": 32,
+    "context_total": 87,
+    "deltas": {
+      "correctness": 16,
+      "skill_adherence": 17,
+      "code_quality": 6,
+      "test_coverage": 10,
+      "documentation": 6
+    }
+  }
+]
+```
+
+**Why it matters:** This file powers the **TREND** line you see in human-readable output:
+
+```text
+TREND: baseline ↑ (+2), context ↑ (+7)
+```
+
+The trend compares the current run against the *previous run of the same eval + skill*. This tells you at a glance whether your latest skill edit made things better or worse.
+
+**Pro tip:** Commit `.skill-bench-history.json` to git if you want to share trend data with your team. Add it to `.gitignore` if you prefer to keep scores private.
+
+---
+
+### `.skill-bench-history.json.bak` — Backup (Auto-Generated)
+
+**What it is:** A copy of `.skill-bench-history.json` created every time SkillBench writes a new entry. If the main file gets corrupted (e.g. you kill the process mid-write), SkillBench automatically falls back to the `.bak` file.
+
+**Who edits it:** Nobody. It is a safety net.
+
+**When to care:** Almost never. If you see a "History file corrupted" warning, SkillBench has already recovered from the `.bak` for you.
+
+---
+
+## Iterating on Skills: A Practical Workflow
+
+Writing a good skill is rarely a one-shot process. Here is a tested workflow that uses the history file to guide your improvements.
+
+### Step 1: Write a V1 Skill
+
+Create a skill and an eval that exercises it:
+
+```bash
+skill-bench skill new my-service --mode=rails --template=service_object
+skill-bench eval new my-first-eval --runtime=rails
+# ... edit SKILL.md, task.md, and criteria.json ...
+```
+
+### Step 2: Run and Record the Baseline
+
+```bash
+skill-bench run my-first-eval --skill=my-service
+```
+
+Read the output carefully. Look at **two things:**
+
+1. **Verdict:** Did it pass? If not, which dimension failed?
+2. **Delta:** Which dimensions improved the most? Which improved the least?
+
+### Step 3: Inspect the History
+
+```bash
+cat .skill-bench-history.json | jq '.[-1]'
+```
+
+This shows the latest entry. Focus on the dimension with the smallest delta — that is where your skill is weakest.
+
+### Step 4: Edit the Skill
+
+Suppose `test_coverage` only improved by `+3`. Open `skills/my-service/SKILL.md` and add a concrete rule:
+
+```markdown
+## Hard Rules
+
+... existing rules ...
+
+5. Every service must include RSpec tests with at least:
+   - One happy-path test
+   - One error-path test
+   - Use of `let` and `subject` blocks
+```
+
+### Step 5: Re-run and Compare Trends
+
+```bash
+skill-bench run my-first-eval --skill=my-service
+```
+
+Watch the **TREND** line:
+
+```text
+TREND: baseline → (0), context ↑ (+5)
+```
+
+The context score went up by 5 points compared to the previous run. If `test_coverage` delta jumped from `+3` to `+8`, your edit worked.
+
+### Step 6: Iterate Until Stable
+
+Repeat steps 4-5 until:
+- The eval passes consistently (2-3 runs in a row)
+- Deltas are stable (not swinging wildly)
+- The trend line shows `context → (0)` or small positive deltas
+
+### When to Stop Iterating
+
+| Situation | Action |
+|-----------|--------|
+| Context score is ~95+ and deltas are flat | Your skill is mature. Move on. |
+| Context score is stuck below threshold | Your eval task might be too hard, or your skill rules are too vague. Rewrite `task.md` with clearer acceptance criteria. |
+| Baseline score is already high | The task is too easy. Make `task.md` harder so the skill has room to show value. |
+| One dimension is always low | Add a specific rule to `SKILL.md` targeting that dimension. |
 
 ---
 

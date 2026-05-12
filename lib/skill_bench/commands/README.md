@@ -116,7 +116,7 @@ Generates a single-provider `skill-bench.json` file with sensible defaults:
 
 **Parameters:**
 
-- `provider` (Symbol): One of `:openai`, `:anthropic`, `:gemini`, `:ollama`, `:azure`, `:groq`, `:deepseek`, `:opencode`
+- `provider` (Symbol): One of `:openai`, `:anthropic`, `:gemini`, `:ollama`, `:azure`, `:groq`, `:deepseek`, `:opencode` (**requires custom `base_url`**)
 - `force` (Boolean): Overwrite existing config file
 
 ### `Run` — Evaluation Execution

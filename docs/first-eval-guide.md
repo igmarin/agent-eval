@@ -1,11 +1,22 @@
 # SkillBench - 5 Minute First Eval Guide
 
-Get started with Ruby Skill Bench in 5 minutes.
+Get started with Ruby Skill Bench in 5 minutes. No prior AI eval experience required.
+
+---
 
 ## Prerequisites
 
 - Ruby 3.1+
 - Bundler
+
+Not sure? Run:
+
+```bash
+ruby --version   # Should be 3.1 or higher
+bundle --version # Should print a version number
+```
+
+---
 
 ## Step 1: Installation
 
@@ -21,6 +32,8 @@ Or install globally:
 gem install ruby-skill-bench
 ```
 
+---
+
 ## Step 2: Initialize Configuration
 
 ```bash
@@ -31,6 +44,10 @@ This creates `skill-bench.json` with the OpenAI provider config. Use `--force` t
 
 **Available providers:** `--openai`, `--anthropic`, `--gemini`, `--ollama`, `--azure`, `--groq`, `--deepseek`, `--opencode`
 
+> **What is `skill-bench.json`?** This is your config file. It stores your API key, chosen LLM model, timeout, and allowed shell commands. Think of it as `.env` but structured as JSON. You edit it; SkillBench reads it.
+
+---
+
 ## Step 3: Create Your First Skill
 
 ```bash
@@ -38,6 +55,36 @@ skill-bench skill new my-service --mode=rails --template=service_object
 ```
 
 This creates `skills/my-service/SKILL.md` with a Rails service object template.
+
+**What is a skill?** A skill is a set of instructions (written in Markdown) that you want the AI agent to follow. It is like a style guide or a cheat sheet. The agent reads it before solving the task.
+
+**What goes in `SKILL.md`:**
+- What pattern the skill implements (e.g. "Service Object with `.call`")
+- Hard rules the agent must follow
+- Code examples
+- Response format expectations
+
+**Example `SKILL.md`:**
+
+```markdown
+# Service Object Skill
+
+## Pattern
+
+All service objects use the `.call` class method and return a standardized hash:
+
+```ruby
+{ success: true, response: { data: ... } }
+```
+
+## Hard Rules
+
+1. Every `.rb` file begins with `# frozen_string_literal: true`
+2. Every public method has YARD docs (`@param`, `@return`, `@raise`)
+3. `rescue StandardError` blocks must log backtrace
+```
+
+---
 
 ## Step 4: Create an Eval
 
@@ -177,7 +224,9 @@ Both skill contexts are concatenated. The judge evaluates whether the combined c
 - `ollama` — Local Ollama models
 - `groq` — Groq fast inference
 - `deepseek` — DeepSeek models
-- `opencode` — OpenCode platform
+- `opencode` — OpenCode platform (**requires custom `base_url`**: OpenCode does not host a public LLM API. Provide your own OpenAI-compatible endpoint via `config.base_url`)
+
+---
 
 ## Step 6: Check Results
 
@@ -207,11 +256,19 @@ Both skill contexts are concatenated. The judge evaluates whether the combined c
 
 **Column meanings:**
 
-- **BASELINE:** Score without skill (unaided performance)
-- **CONTEXT:** Score with skill (aided performance)
-- **DELTA:** Improvement = CONTEXT - BASELINE
-- **TREND:** Change since last run (from `.skill-bench-history.json`)
-- **VERDICT:** PASS only if CONTEXT >= threshold AND DELTA >= minimum_delta
+| Column | Meaning |
+|--------|---------|
+| **BASELINE** | Score without skill (unaided performance). Think: "How well does the AI do on its own?" |
+| **CONTEXT** | Score with skill (aided performance). Think: "How well does the AI do when it reads my skill?" |
+| **DELTA** | Improvement = CONTEXT - BASELINE. Think: "How many points did my skill add?" |
+| **TREND** | Change since the *previous* run of this exact eval + skill. Stored in `.skill-bench-history.json`. |
+| **VERDICT** | PASS only if CONTEXT >= threshold AND DELTA >= minimum_delta. Both must be true. |
+
+**Why both conditions for PASS?**
+
+- `pass_threshold` alone would pass even if the skill didn't help (e.g. baseline=80, context=80, delta=0).
+- `minimum_delta` alone would pass even if the absolute score is terrible (e.g. baseline=10, context=20, delta=10).
+- Both together ensure the skill is **both effective and meaningful**.
 
 **JSON output:**
 
@@ -224,6 +281,89 @@ skill-bench run my-first-eval --skill=my-service --format json
 ```bash
 skill-bench run my-first-eval --skill=my-service --format junit
 ```
+
+---
+
+## Step 7: Iterate and Improve
+
+Your first run probably will not pass. That is normal. Here is how to improve.
+
+### Use the History File
+
+After each run, SkillBench appends to `.skill-bench-history.json`. You can read it to track progress:
+
+```bash
+cat .skill-bench-history.json | jq '.[-1]'
+```
+
+Look at the dimension with the **smallest delta**. That is where your skill is weakest. Open `SKILL.md` and add a concrete rule targeting that dimension.
+
+### Example Iteration
+
+**Run 1:** Test Coverage delta is only `+3`.
+
+**Action:** Add to `SKILL.md`:
+
+```markdown
+## Testing Rules
+
+Every service must have RSpec tests with:
+- One test for the happy path (valid input succeeds)
+- One test for the error path (invalid input returns errors)
+- Use `describe`, `context`, and `it` blocks
+```
+
+**Run 2:** Test Coverage delta jumps to `+10`. TREND line shows `context ↑ (+5)`.
+
+**Repeat** until the eval passes consistently and deltas are stable.
+
+---
+
+## Understanding the Files on Disk
+
+SkillBench manages three files you should know about:
+
+### `skill-bench.json` — Your Configuration (You Edit This)
+
+Created by `skill-bench init`. Stores provider, API key, model, timeout, and allowed commands. You edit this file by hand or with the CLI.
+
+```json
+{
+  "provider": "openai",
+  "max_execution_time": 300,
+  "allowed_commands": ["rspec", "bundle", "ruby", "git"],
+  "config": {
+    "api_key": "sk-...",
+    "model": "gpt-4o"
+  }
+}
+```
+
+### `.skill-bench-history.json` — Evaluation History (Auto-Generated)
+
+A JSON array recording every successful eval run. SkillBench writes it automatically. It stores timestamps, eval names, skill names, scores, and deltas. This powers the **TREND** line in your output.
+
+```json
+[
+  {
+    "timestamp": "2026-05-12T10:30:00Z",
+    "eval_name": "my-first-eval",
+    "skill_names": ["my-service"],
+    "verdict": true,
+    "baseline_total": 32,
+    "context_total": 87,
+    "deltas": { "correctness": 16, "skill_adherence": 17, ... }
+  }
+]
+```
+
+**Tip:** Commit this file to git if you want to share trend data with your team.
+
+### `.skill-bench-history.json.bak` — Backup (Auto-Generated)
+
+A safety copy of the history file. If the main file gets corrupted, SkillBench recovers from this backup automatically. You never need to touch it.
+
+---
 
 ## Troubleshooting
 
@@ -242,6 +382,10 @@ Run `skill-bench init --<provider>` to create `skill-bench.json`, or ensure it e
 ### "Baseline agent failed" or "Context agent failed"
 
 The LLM provider returned an error. Check your API key in `skill-bench.json` or environment variables.
+
+### "Base URL not set for Opencode"
+
+You selected `opencode` as provider but did not set a `base_url`. OpenCode does not host a public API. Either switch to a real provider (`openrouter`, `groq`, etc.) or set `config.base_url` to your own OpenAI-compatible proxy.
 
 ## Next Steps
 

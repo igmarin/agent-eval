@@ -64,7 +64,7 @@ graph TD
 | **Ollama** | `:ollama` | `OLLAMA_*` | Local-First (Llama 3, Qwen, Mistral) |
 | **Groq** | `:groq` | `GROQ_*` | High-speed inference |
 | **DeepSeek** | `:deepseek` | `DEEPSEEK_*` | Cost-effective alternative |
-| **OpenCode** | `:opencode` | `OPENCODE_*` | Custom endpoint |
+| **OpenCode** | `:opencode` | `OPENCODE_*` | **Custom endpoint required** (self-hosted proxy / LiteLLM / vLLM) |
 | **Null Client** | `:null` | N/A | Mock / Fallback testing |
 
 ---
