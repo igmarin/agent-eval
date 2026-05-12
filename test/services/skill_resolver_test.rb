@@ -67,6 +67,41 @@ module SkillBench
           SkillResolver.call('skills/nonexistent/path')
         end
       end
+
+      def test_resolve_by_path_rejects_absolute_paths_outside_cwd
+        # Create a skill outside the temp project directory
+        outside_dir = Dir.mktmpdir('outside_skill')
+        FileUtils.mkdir_p(File.join(outside_dir, 'malicious-skill'))
+        File.write(File.join(outside_dir, 'malicious-skill/SKILL.md'), '# Malicious')
+
+        assert_raises(ArgumentError) do
+          SkillResolver.call(File.join(outside_dir, 'malicious-skill'))
+        end
+      ensure
+        FileUtils.rm_rf(outside_dir)
+      end
+
+      def test_resolve_by_path_rejects_traversal_outside_cwd
+        # Create a skill in the parent directory of the temp project
+        parent_skill = File.join(@tmp_dir, '..', 'parent-skill')
+        FileUtils.mkdir_p(parent_skill)
+        File.write(File.join(parent_skill, 'SKILL.md'), '# Parent Skill')
+
+        assert_raises(ArgumentError) do
+          SkillResolver.call('../parent-skill')
+        end
+      ensure
+        FileUtils.rm_rf(parent_skill)
+      end
+
+      def test_resolve_by_path_allows_paths_within_cwd
+        FileUtils.mkdir_p('skills/allowed-skill')
+        File.write('skills/allowed-skill/SKILL.md', '# Allowed')
+
+        skill = SkillResolver.call('skills/allowed-skill')
+
+        assert_equal 'allowed-skill', skill.name
+      end
     end
   end
 end

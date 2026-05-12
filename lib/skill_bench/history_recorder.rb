@@ -11,7 +11,7 @@ module SkillBench
   # Delegates to specialized services following Single Responsibility Principle.
   class HistoryRecorder
     # The default file where historical benchmarks are stored.
-    HISTORY_FILE = File.join(__dir__, '..', 'benchmarks.json')
+    HISTORY_FILE = 'benchmarks.json'
 
     # Records evaluation results into a historical benchmarks file.
     # Delegates to PersistenceService.

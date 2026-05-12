@@ -54,10 +54,13 @@ module SkillBench
       # @param setting [Symbol] The setting name (e.g., :api_key)
       # @return [String, nil] The resolved value
       def resolve_env_setting(setting)
-        prefixed = ENV.fetch("SKILL_BENCH_#{name.upcase}_#{setting.upcase}", nil)
+        provider_name = name.upcase
+        setting_name = setting.upcase
+
+        prefixed = ENV.fetch("SKILL_BENCH_#{provider_name}_#{setting_name}", nil)
         return prefixed if prefixed && !prefixed.to_s.empty?
 
-        legacy = ENV.fetch("#{name.upcase}_#{setting.upcase}", nil)
+        legacy = ENV.fetch("#{provider_name}_#{setting_name}", nil)
         return legacy if legacy && !legacy.to_s.empty?
 
         config[setting]

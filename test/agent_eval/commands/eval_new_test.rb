@@ -6,22 +6,27 @@ module SkillBench
   module Commands
     class EvalNewTest < Minitest::Test
       def setup
+        @original_dir = Dir.pwd
         @tmp_dir = Dir.mktmpdir('eval_new_test')
         Dir.chdir(@tmp_dir)
         FileUtils.mkdir('evals')
       end
 
       def teardown
-        Dir.chdir('/')
+        Dir.chdir(@original_dir)
         FileUtils.rm_rf(@tmp_dir)
       end
 
-      def test_run_creates_generic_eval
+      def test_run_creates_eval_with_default_runtime
         EvalNew.run(name: 'my-eval')
 
         assert_path_exists 'evals/my-eval/task.md'
         assert_path_exists 'evals/my-eval/criteria.json'
         refute_path_exists 'evals/my-eval/rails_helper.rb'
+
+        criteria = JSON.parse(File.read('evals/my-eval/criteria.json'))
+
+        assert_equal 'Evaluate ruby task', criteria['context']
       end
 
       def test_run_creates_rails_eval

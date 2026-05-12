@@ -9,9 +9,9 @@ module SkillBench
     class EvalNew
       # Run the eval new command
       # @param name [String] Eval name
-      # @param runtime [String] "generic" or "rails"
+      # @param runtime [String] "ruby" or "rails" (default: ruby)
       # @return [void]
-      def self.run(name:, runtime: 'generic')
+      def self.run(name:, runtime: 'ruby')
         eval_path = File.join('evals', name)
         FileUtils.mkdir_p(eval_path)
 

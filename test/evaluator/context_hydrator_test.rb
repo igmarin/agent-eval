@@ -68,5 +68,25 @@ module SkillBench
         refute_match(/large.rb/, context)
       end
     end
+
+    def test_rejects_symlinks
+      secret_file = File.join(Dir.tmpdir, 'skill_bench_test_secret.txt')
+      File.write(secret_file, 'SYMLINK_SECRET_CONTENT')
+
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, 'real.md'), ' legitimate content')
+        File.symlink(secret_file, File.join(dir, 'link.txt'))
+
+        result = ContextHydrator.call(source_path: '.', base_path: Pathname.new(dir))
+
+        assert result[:success]
+        context = result[:response][:context]
+
+        assert_match(/legitimate content/, context)
+        refute_match(/SYMLINK_SECRET_CONTENT/, context)
+      end
+    ensure
+      FileUtils.rm_f(secret_file)
+    end
   end
 end

@@ -60,7 +60,9 @@ module SkillBench
 
     def collect_context_files(full_path)
       pattern = full_path.join("*{#{TEXT_EXTENSIONS.join(',')}}").to_s
-      Dir.glob(pattern).select { |f| File.size(f) <= MAX_FILE_SIZE }.sort
+      Dir.glob(pattern).reject { |f| File.symlink?(f) }
+                       .select { |f| File.size(f) <= MAX_FILE_SIZE }
+                       .sort
     end
 
     # Builds the XML structure wrapping the contents of the context files.

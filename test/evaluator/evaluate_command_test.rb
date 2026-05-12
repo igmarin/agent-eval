@@ -2,11 +2,17 @@
 
 require 'stringio'
 require 'test_helper'
+require_relative '../../lib/skill_bench/evaluate_command'
 
 module SkillBench
   class EvaluateCommandTest < Minitest::Test
     def setup
+      @original_dir = Dir.pwd
       @stdout = StringIO.new
+    end
+
+    def teardown
+      Dir.chdir(@original_dir)
     end
 
     def test_call_accepts_eval_without_explicit_skill_override
@@ -135,6 +141,31 @@ module SkillBench
       result = command.send(:parse_options?)
 
       refute result
+    end
+
+    def test_safe_expand_path_rejects_absolute_paths_outside_cwd
+      Dir.mktmpdir do |dir|
+        Dir.chdir(dir) do
+          command = EvaluateCommand.new([], stdout: @stdout)
+
+          error = assert_raises(ArgumentError) do
+            command.send(:safe_expand_path, '/etc/passwd')
+          end
+
+          assert_match(/outside the current working directory/, error.message)
+        end
+      end
+    end
+
+    def test_safe_expand_path_allows_paths_within_cwd
+      Dir.mktmpdir do |dir|
+        Dir.chdir(dir) do
+          command = EvaluateCommand.new([], stdout: @stdout)
+          path = command.send(:safe_expand_path, 'evals/my-eval')
+
+          assert_equal File.expand_path('evals/my-eval'), path
+        end
+      end
     end
 
     private

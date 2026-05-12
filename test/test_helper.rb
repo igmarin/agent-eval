@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'simplecov'
-SimpleCov.start 'rails' do
+SimpleCov.start do
   add_filter '/test/'
 end
 
@@ -9,6 +9,6 @@ require 'minitest/autorun'
 require 'mocha/minitest'
 require 'webmock/minitest'
 
-# Load all library files
+# Load the library via the canonical entry point
 $LOAD_PATH << File.expand_path('../lib', __dir__)
-Dir.glob(File.join(__dir__, '../lib', '**', '*.rb')).each(&method(:require))
+require_relative '../lib/skill_bench'

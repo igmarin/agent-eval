@@ -43,6 +43,7 @@ detectors:
       - "SkillBench::Clients::Providers::Ollama"
       - "SkillBench::Clients::Providers::OpenAI"
       - "SkillBench::Clients::Providers::OpenCode"
+      - "SkillBench::Clients::Providers::OpenRouter"
       - "SkillBench::Config::Store"
   MissingSafeMethod:
     enabled: false
@@ -185,6 +186,8 @@ detectors:
       - "SkillBench::EvalGenerator#generate_eval"           # Guards against missing provider config — nil is a valid state here
       - "SkillBench::EvalGenerator#sanitize_eval_name"      # Guards against nil/blank input — defensive boundary
       - "SkillBench::Services::RunnerService#load_combined_skill_context"  # Guards against nil skills array — defensive boundary
+      - "SkillBench::Clients::Providers::OpenCode#missing_config_keys"     # Base URL is optional; nil check validates required config
+      - "SkillBench::Models::Provider#merged_config"                       # API key is mandatory; nil check provides clear error message
   NestedIterators:
     exclude:
       - "SkillBench::CLI#handle_eval_new"
@@ -221,3 +224,4 @@ detectors:
       - "SkillBench::Tools::Dispatcher#log_error"
       - "SkillBench::BenchmarkRecorder#extract_entry"       # Duck-type guard for report objects from both production and test fixtures
       - "SkillBench::Clients::RetryHandler#extract_status"   # Duck-type dispatch across Faraday error classes with different APIs
+      - "SkillBench::OutputFormatter#self.format_junit"      # Duck-type dispatch for backward compatibility with legacy result format

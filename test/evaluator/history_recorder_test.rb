@@ -34,5 +34,12 @@ module SkillBench
       File.expects(:open).never
       SkillBench::HistoryRecorder.record(results, source_path: 'test', model: 'gpt-4')
     end
+
+    def test_default_history_file_resolves_to_cwd
+      expected = File.expand_path('benchmarks.json')
+      actual = File.expand_path(SkillBench::HistoryRecorder::HISTORY_FILE)
+
+      assert_equal expected, actual
+    end
   end
 end

@@ -7,6 +7,7 @@ module SkillBench
     # Service object for printing formatted evaluation results to stdout.
     # Handles result formatting, score parsing, and provides standardized output for
     # both successful and failed evaluations.
+    # @deprecated Use {SkillBench::Cli::ResultPrinter} instead.
     class ResultPrinterService
       RESULTS_BANNER = "\n=========================================\n              " \
                        "RESULTS                    \n" \

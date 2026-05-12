@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'pathname'
 require_relative 'runner'
 require_relative 'services/option_parser_service'
 require_relative 'services/result_printer_service'
@@ -8,6 +9,7 @@ require_relative 'services/output_persistence_service'
 module SkillBench
   # Implements the `skill-bench run` CLI command.
   # Orchestrates option parsing, evaluation execution, result printing, and output persistence.
+  # @deprecated Use {SkillBench::Cli::RunCommand} and {SkillBench::Services::RunnerService} instead.
   class EvaluateCommand
     # Parses arguments, runs the evaluator, prints the report, and records history.
     #
@@ -102,11 +104,10 @@ module SkillBench
 
     def safe_expand_path(path)
       expanded = File.expand_path(path)
+      base = File.expand_path(Dir.pwd)
 
-      if path.include?('..')
-        base = File.expand_path(Dir.pwd)
-        raise ArgumentError, "Path '#{path}' resolves outside the current working directory" unless expanded.start_with?("#{base}/") || expanded == base
-      end
+      relative = Pathname.new(expanded).relative_path_from(Pathname.new(base)).to_s
+      raise ArgumentError, "Path '#{path}' resolves outside the current working directory" if relative.start_with?('..')
 
       expanded
     end

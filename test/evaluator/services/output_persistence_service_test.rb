@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require_relative '../../../lib/skill_bench/services/output_persistence_service'
 require 'tempfile'
 
 module SkillBench

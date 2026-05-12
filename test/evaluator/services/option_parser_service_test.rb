@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require_relative '../../../lib/skill_bench/services/option_parser_service'
 
 module SkillBench
   module Services
@@ -48,7 +49,7 @@ module SkillBench
       def test_call_with_help_flag
         argv = %w[-h]
 
-        assert_raises(SystemExit) do
+        assert_raises(SkillBench::HelpRequested) do
           OptionParserService.call(argv)
         end
       end

@@ -2,6 +2,7 @@
 
 require 'stringio'
 require 'test_helper'
+require_relative '../../lib/skill_bench/evaluate_command'
 
 module SkillBench
   class EvaluateCommandOptionsTest < Minitest::Test

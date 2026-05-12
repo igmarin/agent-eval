@@ -20,6 +20,24 @@ module SkillBench
           HelpPrinter.call
         end
       end
+
+      def test_call_includes_format_flag
+        assert_output(/--format/) do
+          HelpPrinter.call
+        end
+      end
+
+      def test_call_includes_eval_generate_subcommand
+        assert_output(/eval generate/) do
+          HelpPrinter.call
+        end
+      end
+
+      def test_call_notes_multi_skill_support
+        assert_output(/can be specified multiple times/) do
+          HelpPrinter.call
+        end
+      end
     end
   end
 end

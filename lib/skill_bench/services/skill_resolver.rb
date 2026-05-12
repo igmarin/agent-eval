@@ -41,9 +41,14 @@ module SkillBench
       # Resolves a skill by direct file path.
       #
       # @return [SkillBench::Models::Skill] The resolved skill
-      # @raise [ArgumentError] if skill file not found at path
+      # @raise [ArgumentError] if skill file not found at path or path escapes project boundary
       def resolve_by_path
         normalized_path = identifier.end_with?('SKILL.md') ? File.dirname(identifier) : identifier
+        absolute_path = File.expand_path(normalized_path)
+        cwd = File.expand_path(Dir.pwd)
+
+        raise(ArgumentError, "Skill path escapes project boundary: #{identifier}") unless absolute_path.start_with?(cwd)
+
         skill_md = File.join(normalized_path, 'SKILL.md')
 
         return Models::Skill.new(name: File.basename(normalized_path), path: normalized_path) if File.exist?(skill_md)

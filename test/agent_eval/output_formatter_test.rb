@@ -51,6 +51,35 @@ module SkillBench
       assert_includes output, '<failure message="Score: 0.3">'
     end
 
+    def test_format_junit_with_delta_report_pass
+      report = build_delta_report(verdict: true)
+      result = {
+        success: true,
+        response: { report: report },
+        eval_name: 'delta-eval'
+      }
+      output = OutputFormatter.format(result, format: :junit)
+
+      assert_includes output, '<?xml version="1.0"?>'
+      assert_includes output, '<testsuite name="SkillBench" tests="1" failures="0">'
+      assert_includes output, '<testcase name="delta-eval"'
+      refute_includes output, '<failure'
+    end
+
+    def test_format_junit_with_delta_report_fail
+      report = build_delta_report(verdict: false)
+      result = {
+        success: true,
+        response: { report: report },
+        eval_name: 'delta-eval'
+      }
+      output = OutputFormatter.format(result, format: :junit)
+
+      assert_includes output, 'failures="1"'
+      assert_includes output, '<failure'
+      assert_includes output, 'delta-eval'
+    end
+
     def test_exit_code_returns_0_for_pass
       result = { pass: true }
 

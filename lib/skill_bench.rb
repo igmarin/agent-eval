@@ -16,13 +16,12 @@ require_relative 'skill_bench/agent_summary'
 require_relative 'skill_bench/delta_report'
 require_relative 'skill_bench/evaluation_runner'
 require_relative 'skill_bench/cli'
-require_relative 'skill_bench/evaluate_command'
+require_relative 'skill_bench/config'
 require_relative 'skill_bench/agent_runner'
 require_relative 'skill_bench/judge'
 require_relative 'skill_bench/sandbox'
 require_relative 'skill_bench/output_formatter'
 require_relative 'skill_bench/context_hydrator'
-require_relative 'skill_bench/runner'
 require_relative 'skill_bench/client'
 require_relative 'skill_bench/react_agent'
 
@@ -52,10 +51,6 @@ require_relative 'skill_bench/commands/eval_new'
 
 # Services
 require_relative 'skill_bench/services/runner_service'
-require_relative 'skill_bench/services/result_printer_service'
-require_relative 'skill_bench/services/option_parser_service'
-require_relative 'skill_bench/services/judge_score_parser_service'
-require_relative 'skill_bench/services/output_persistence_service'
 
 # Tools
 require_relative 'skill_bench/tools'
@@ -79,6 +74,5 @@ require_relative 'skill_bench/package_verifier'
 
 # Utility modules
 require_relative 'skill_bench/error_logger'
-require_relative 'skill_bench/task_evaluator'
 require_relative 'skill_bench/task_file_reader'
 require_relative 'skill_bench/source_path_resolver'
