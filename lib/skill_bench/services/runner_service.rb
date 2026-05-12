@@ -43,29 +43,41 @@ module SkillBench
         skills = resolve_skills
         provider = resolve_provider
 
-        baseline_output = spawn_agent(evaluation, nil, provider)
-        return agent_error_result(baseline_output, 'baseline') if baseline_output[:status] == :error
+        config_result = resolve_provider_config(provider)
+        return config_error_result(config_result[:error], evaluation, provider) unless config_result[:success]
 
-        context_output = spawn_agent(evaluation, skills, provider)
-        return agent_error_result(context_output, 'context') if context_output[:status] == :error
+        config = config_result[:config]
+        baseline_output = spawn_agent(evaluation, nil, provider, config)
+        return agent_error_result(baseline_output, 'baseline', evaluation, provider) if baseline_output[:status] == :error
+
+        context_output = spawn_agent(evaluation, skills, provider, config)
+        return agent_error_result(context_output, 'context', evaluation, provider) if context_output[:status] == :error
 
         criteria = evaluation.criteria
         skill_context = load_combined_skill_context(skills)
+        judge_params = build_judge_params(provider, config)
 
         result = EvaluationRunner.call(
           task: evaluation.task,
           criteria: criteria,
           skill_context: skill_context,
           baseline_output: format_output(baseline_output),
-          context_output: format_output(context_output)
+          context_output: format_output(context_output),
+          judge_params: judge_params
         )
 
-        return result unless result[:success]
+        return enrich_error_result(result, evaluation, provider) unless result[:success]
 
         trend = record_and_compute_trend(result)
-        return result unless trend
+        return enrich_error_result(result, evaluation, provider) unless trend
 
-        { success: true, response: result[:response].merge(trend: trend) }
+        {
+          success: true,
+          eval_name: eval_name,
+          skill_name: skill_names.join(', '),
+          provider_name: provider.name,
+          response: result[:response].merge(trend: trend)
+        }
       end
 
       private
@@ -81,6 +93,22 @@ module SkillBench
         skill_names.map { |name| Services::SkillResolver.call(name) }
       end
 
+      def resolve_provider_config(provider)
+        { success: true, config: provider.merged_config }
+      rescue ArgumentError => e
+        { success: false, error: e }
+      end
+
+      # Safely calls merged_config, returning nil on any error.
+      #
+      # @param provider [Object] The provider to query.
+      # @return [Hash, nil] The merged config or nil.
+      def safe_merged_config(provider)
+        provider.merged_config
+      rescue StandardError
+        nil
+      end
+
       def resolve_provider
         config = SkillBench::Models::Config.load
         provider = config.to_provider
@@ -90,11 +118,11 @@ module SkillBench
         MOCK_PROVIDER.new('mock', 'mock', 'mock', {})
       end
 
-      def spawn_agent(evaluation, skills, provider)
+      def spawn_agent(evaluation, skills, provider, config)
         return { result: 'mock result', status: :success } if provider.name == 'mock'
 
         client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime.to_sym)
-        config = provider.merged_config
+        config ||= safe_merged_config(provider)
         options = config.dup
         options[:model] ||= provider.llm
 
@@ -106,9 +134,10 @@ module SkillBench
           **options
         )
 
+        status = response[:success] ? :success : :error
         {
           result: response[:result],
-          status: response[:success] ? :success : :error,
+          status: status,
           runtime: provider.runtime,
           usage: response[:usage],
           raw_response: response[:response]
@@ -127,19 +156,59 @@ module SkillBench
         File.exist?(skill_md) ? File.read(skill_md) : ''
       end
 
+      def build_judge_params(provider, config)
+        return {} if provider.name == 'mock'
+
+        config ||= safe_merged_config(provider)
+        return {} unless config
+
+        {
+          api_key: config[:api_key],
+          model: config[:model] || provider.llm,
+          provider: provider.runtime.to_sym
+        }
+      rescue StandardError
+        {}
+      end
+
       def format_output(agent_result)
         agent_result[:result].to_s
       end
 
-      def agent_error_result(result, phase)
+      def agent_error_result(result, phase, evaluation, provider)
         {
           success: false,
           response: {
             error: {
               message: "#{phase.capitalize} agent failed: #{result[:raw_response]&.dig(:error, :message) || 'unknown error'}"
             }
-          }
+          },
+          eval_name: evaluation.name,
+          skill_name: skill_names.join(', '),
+          provider_name: provider.name
         }
+      end
+
+      def config_error_result(error, evaluation, provider)
+        {
+          success: false,
+          response: {
+            error: {
+              message: "Configuration error: #{error.message}"
+            }
+          },
+          eval_name: evaluation.name,
+          skill_name: skill_names.join(', '),
+          provider_name: provider.name
+        }
+      end
+
+      def enrich_error_result(result, evaluation, provider)
+        result.merge(
+          eval_name: evaluation.name,
+          skill_name: skill_names.join(', '),
+          provider_name: provider.name
+        )
       end
 
       def record_and_compute_trend(result)

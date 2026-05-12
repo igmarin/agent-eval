@@ -12,6 +12,7 @@ require_relative 'error_logger'
 module SkillBench
   # Evaluates a single task by running baseline and context-hydrated evaluations.
   # Orchestrates AgentRunner calls and Judge scoring.
+  # @deprecated Use {SkillBench::EvaluationRunner} instead.
   class TaskEvaluator
     # Evaluates a single task.
     #

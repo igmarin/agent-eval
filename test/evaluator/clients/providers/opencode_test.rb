@@ -14,9 +14,10 @@ module SkillBench
         def test_call_returns_message_content_on_success
           Config.setup do |config|
             config.set_provider_api_key(:opencode, 'test_opencode_key')
+            config.set_provider_base_url(:opencode, 'https://custom.opencode.example')
           end
 
-          stub_request(:post, %r{api\.opencode\.ai.*chat/completions})
+          stub_request(:post, 'https://custom.opencode.example/v1/chat/completions')
             .to_return(
               status: 200,
               body: { choices: [{ message: { content: 'Hello from OpenCode', role: 'assistant' } }] }.to_json,
@@ -27,6 +28,7 @@ module SkillBench
           $stderr = StringIO.new
           result = OpenCode.call(
             api_key: 'test_opencode_key',
+            base_url: 'https://custom.opencode.example',
             model: 'opencode-1',
             system_prompt: 'System',
             messages: [{ role: 'user', content: 'Hi' }]
@@ -41,10 +43,31 @@ module SkillBench
         def test_call_returns_error_on_api_failure
           Config.setup do |config|
             config.set_provider_api_key(:opencode, 'test_opencode_key')
+            config.set_provider_base_url(:opencode, 'https://custom.opencode.example')
           end
 
-          stub_request(:post, %r{api\.opencode\.ai.*chat/completions})
+          stub_request(:post, 'https://custom.opencode.example/v1/chat/completions')
             .to_return(status: 401, body: 'Unauthorized')
+
+          old_stderr = $stderr
+          $stderr = StringIO.new
+          result = OpenCode.call(
+            api_key: 'test_opencode_key',
+            base_url: 'https://custom.opencode.example',
+            model: 'opencode-1',
+            system_prompt: 'System',
+            messages: [{ role: 'user', content: 'Hi' }]
+          )
+        ensure
+          $stderr = old_stderr
+
+          refute result[:success]
+        end
+
+        def test_call_returns_error_when_base_url_missing
+          Config.setup do |config|
+            config.set_provider_api_key(:opencode, 'test_opencode_key')
+          end
 
           old_stderr = $stderr
           $stderr = StringIO.new
@@ -58,6 +81,7 @@ module SkillBench
           $stderr = old_stderr
 
           refute result[:success]
+          assert_equal 'Base URL not set for Opencode', result[:response][:error][:message]
         end
 
         def test_provider_name

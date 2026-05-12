@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require_relative '../../../lib/skill_bench/services/result_printer_service'
 require 'stringio'
 
 module SkillBench

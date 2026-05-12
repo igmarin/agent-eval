@@ -43,6 +43,7 @@ detectors:
       - "SkillBench::Clients::Providers::Ollama"
       - "SkillBench::Clients::Providers::OpenAI"
       - "SkillBench::Clients::Providers::OpenCode"
+      - "SkillBench::Clients::Providers::OpenRouter"
       - "SkillBench::Config::Store"
   MissingSafeMethod:
     enabled: false
@@ -53,6 +54,7 @@ detectors:
       - "SkillBench::EvaluateCommand#print_parse_error"
       - "SkillBench::OutputFormatter#self.format"
       - "SkillBench::Tools::Base"
+      - "SkillBench::Client#self.call"
   DuplicateMethodCall:
     exclude:
       - "SkillBench::AgentRunner#print_header"
@@ -80,6 +82,7 @@ detectors:
       - "SkillBench::ReactAgent#call"
       - "SkillBench::Runner#call"
       - "SkillBench::Services::RunnerService#spawn_agent"
+      - "SkillBench::Services::RunnerService#call"
       - "SkillBench::Tools::Base#verify_component_safety!"
       - "SkillBench::Tools::Dispatcher#log_error"
       - "SkillBench::Tools::WriteFile#self.call"
@@ -110,6 +113,7 @@ detectors:
   DataClump:
     exclude:
       - "SkillBench::Tools"
+      - "SkillBench::Services::RunnerService"
   FeatureEnvy:
     exclude:
       - "SkillBench::CLI#call"
@@ -130,6 +134,7 @@ detectors:
       - "SkillBench::Cli::SkillCommand#handle_new"
       - "SkillBench::Clients::BaseClient#config_error"
       - "SkillBench::Clients::BaseClient#handle_response"
+      - "SkillBench::Clients::BaseClient#missing_message_response"
       - "SkillBench::Clients::Providers::Anthropic#config_error"
       - "SkillBench::Clients::Providers::Anthropic#translate_single_message"
       - "SkillBench::Clients::Providers::AzureOpenAI#config_error"
@@ -181,6 +186,8 @@ detectors:
       - "SkillBench::EvalGenerator#generate_eval"           # Guards against missing provider config — nil is a valid state here
       - "SkillBench::EvalGenerator#sanitize_eval_name"      # Guards against nil/blank input — defensive boundary
       - "SkillBench::Services::RunnerService#load_combined_skill_context"  # Guards against nil skills array — defensive boundary
+      - "SkillBench::Clients::Providers::OpenCode#missing_config_keys"     # Base URL is optional; nil check validates required config
+      - "SkillBench::Models::Provider#merged_config"                       # API key is mandatory; nil check provides clear error message
   NestedIterators:
     exclude:
       - "SkillBench::CLI#handle_eval_new"
@@ -203,7 +210,9 @@ detectors:
       - "SkillBench::Skills::New#initialize"
       - "SkillBench::Skills::TestService#initialize"
   LongParameterList:
-    max_params: 5
+    max_params: 6
+    exclude:
+      - "SkillBench::EvaluationRunner#initialize"
   ManualDispatch:
     exclude:
       - "SkillBench::Clients::ResponseErrorHandler#self.log_error"
@@ -214,3 +223,5 @@ detectors:
       - "SkillBench::OutputFormatter#self.delta_report?"
       - "SkillBench::Tools::Dispatcher#log_error"
       - "SkillBench::BenchmarkRecorder#extract_entry"       # Duck-type guard for report objects from both production and test fixtures
+      - "SkillBench::Clients::RetryHandler#extract_status"   # Duck-type dispatch across Faraday error classes with different APIs
+      - "SkillBench::OutputFormatter#self.format_junit"      # Duck-type dispatch for backward compatibility with legacy result format

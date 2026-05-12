@@ -49,6 +49,30 @@ module SkillBench
         refute ResponseParser.valid_message?(message)
       end
 
+      def test_invalid_message_content_nil_with_empty_tool_calls
+        message = { content: nil, tool_calls: [] }
+
+        refute ResponseParser.valid_message?(message)
+      end
+
+      def test_invalid_message_content_nil_with_no_tool_calls_key
+        message = { content: nil }
+
+        refute ResponseParser.valid_message?(message)
+      end
+
+      def test_valid_message_with_empty_string_content
+        message = { content: '' }
+
+        assert ResponseParser.valid_message?(message)
+      end
+
+      def test_valid_message_with_empty_string_content_and_tool_calls
+        message = { content: '', tool_calls: [{ id: '1' }] }
+
+        assert ResponseParser.valid_message?(message)
+      end
+
       def test_extract_content_from_hash
         message = { content: 'hello' }
 
@@ -91,6 +115,26 @@ module SkillBench
         result = ResponseParser.extract_openai_usage(body)
 
         assert_equal({}, result)
+      end
+
+      def test_parse_body_preserves_non_markdown_error
+        response = Struct.new(:body).new('Not Found')
+        result = ResponseParser.parse_body(response)
+
+        assert result[:error]
+        assert_equal 'Not Found', result[:error][:message]
+      end
+
+      def test_strip_markdown_fences
+        assert_equal '{"a":1}', ResponseParser.strip_markdown_fences("```json\n{\"a\":1}\n```")
+      end
+
+      def test_strip_markdown_fences_plain
+        assert_equal '{"a":1}', ResponseParser.strip_markdown_fences("```\n{\"a\":1}\n```")
+      end
+
+      def test_strip_markdown_fences_noop
+        assert_equal '{"a":1}', ResponseParser.strip_markdown_fences('{"a":1}')
       end
     end
   end

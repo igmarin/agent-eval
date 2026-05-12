@@ -63,13 +63,15 @@ module SkillBench
       status = result[:pass] ? 'PASSED' : 'FAILED'
       lines = [
         '=' * 60,
-        "Eval: #{result[:eval_name]}",
-        "Skill: #{result[:skill_name]}",
-        "Provider: #{result[:provider_name]}",
+        "Eval: #{result[:eval_name] || ''}",
+        "Skill: #{result[:skill_name] || ''}",
+        "Provider: #{result[:provider_name] || ''}",
         "Status: #{status}",
-        "Score: #{result[:score]&.round(2) || 'N/A'}",
-        '=' * 60
+        "Score: #{result[:score]&.round(2) || 'N/A'}"
       ]
+      error_msg = result.dig(:response, :error, :message)
+      lines << "Error: #{error_msg}" if error_msg
+      lines << ('=' * 60)
       lines.join("\n")
     end
     private_class_method :format_legacy_human
@@ -192,22 +194,35 @@ module SkillBench
     end
     private_class_method :format_json
 
-    # Format result as JUnit XML
+    # Format result as JUnit XML.
+    # Supports both legacy format (result[:pass]) and modern DeltaReport format.
+    #
     # @param result [Hash] Eval result
     # @return [String] JUnit XML-formatted string
     def self.format_junit(result)
-      status = result[:pass] ? 'passed' : 'failed'
+      report = result.dig(:response, :report)
+      verdict = report.respond_to?(:verdict) ? report.verdict : result[:pass]
       eval_name = CGI.escapeHTML(result[:eval_name].to_s)
-      score = CGI.escapeHTML(result[:score].to_s)
-      failure_xml = result[:pass] ? '' : "<failure message=\"Score: #{score}\">Eval #{status}</failure>"
-      <<~XML
-        <?xml version="1.0"?>
-        <testsuite name="SkillBench" tests="1" failures="#{result[:pass] ? 0 : 1}">
-          <testcase name="#{eval_name}" classname="SkillBench">
-            #{failure_xml}
-          </testcase>
-        </testsuite>
-      XML
+
+      if verdict
+        <<~XML
+          <?xml version="1.0"?>
+          <testsuite name="SkillBench" tests="1" failures="0">
+            <testcase name="#{eval_name}" classname="SkillBench"/>
+          </testsuite>
+        XML
+      else
+        score = report.respond_to?(:context_total) ? report.context_total : result[:score]
+        escaped_score = CGI.escapeHTML(score.to_s)
+        <<~XML
+          <?xml version="1.0"?>
+          <testsuite name="SkillBench" tests="1" failures="1">
+            <testcase name="#{eval_name}" classname="SkillBench">
+              <failure message="Score: #{escaped_score}">Eval failed</failure>
+            </testcase>
+          </testsuite>
+        XML
+      end
     end
     private_class_method :format_junit
   end

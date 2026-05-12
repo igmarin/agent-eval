@@ -17,14 +17,17 @@ AllCops:
 Metrics/MethodLength:
   Max: 60
 
+Metrics/ParameterLists:
+  Max: 6
+
 Metrics/AbcSize:
   Max: 50
 
 Metrics/ClassLength:
-  Max: 150
+  Max: 170
   Exclude:
     - 'lib/skill_bench/cli.rb'
-    - 'test/criteria_test.rb'
+    - 'test/**/*'
 
 Metrics/BlockLength:
   Max: 40

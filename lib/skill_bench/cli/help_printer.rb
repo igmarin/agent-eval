@@ -19,9 +19,10 @@ module SkillBench
               Providers: #{providers}
               --force    Overwrite existing config file
 
-            run <eval> --skill <name>
+            run <eval> --skill <name> [--skill <name>] [--format FORMAT]
               Run an evaluation
-              --skill    Skill to use (required)
+              --skill    Skill to use (can be specified multiple times)
+              --format   Output format: human, json, junit (default: human)
 
             skill new <name> [--mode MODE] [--template TYPE]
               Create a new skill
@@ -31,6 +32,10 @@ module SkillBench
             eval new <name> [--runtime TYPE]
               Create a new eval
               --runtime  rails, ruby, etc. (default: ruby)
+
+            eval generate <skill-name> [--name <eval-name>]
+              Auto-generate an eval from a skill
+              --name     Name for the generated eval (optional)
 
           Global Options:
             -h, --help        Show this help message

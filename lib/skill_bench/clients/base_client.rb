@@ -5,6 +5,7 @@ require_relative 'provider_config'
 require_relative 'response_parser'
 require_relative 'response_error_handler'
 require_relative 'request_builder'
+require_relative 'retry_handler'
 
 module SkillBench
   module Clients
@@ -156,13 +157,27 @@ module SkillBench
       private
 
       def execute_request
-        connection = RequestBuilder.build_connection(base_url)
-        RequestBuilder.execute(connection, request_path, headers: request_headers, body: request_body)
+        RetryHandler.call do
+          connection = RequestBuilder.build_connection(base_url)
+          RequestBuilder.execute(connection, request_path, headers: request_headers, body: request_body)
+        end
       end
 
       def handle_response(response)
         parsed = ResponseParser.parse_body(response)
         return failure_response(response, parsed) unless response.success?
+
+        body_error = parsed.is_a?(Hash) ? (parsed[:error] || parsed['error']) : nil
+        if body_error
+          error_msg = body_error.is_a?(Hash) ? (body_error[:message] || body_error['message']) : body_error.to_s
+          return {
+            success: false,
+            result: "API Error: #{error_msg}",
+            usage: extract_usage(parsed),
+            response: { error: { message: "API Error: #{error_msg}" } },
+            status: 'error'
+          }
+        end
 
         message = extract_message(parsed)
         return missing_message_response(response, parsed) unless ResponseParser.valid_message?(message)
@@ -186,6 +201,10 @@ module SkillBench
       end
 
       def missing_message_response(response, parsed)
+        SkillBench::ErrorLogger.log_error(
+          StandardError.new("LLM response missing message content. Response keys: #{parsed.is_a?(Hash) ? parsed.keys.inspect : parsed.class}"),
+          'BaseClient'
+        )
         ResponseErrorHandler.missing_message_response(response, parsed) { |body| extract_usage(body) }
       end
     end

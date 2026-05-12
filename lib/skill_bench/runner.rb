@@ -8,6 +8,7 @@ require_relative 'error_logger'
 module SkillBench
   # Orchestrates the entire evaluation process.
   # Compares how an AI coding agent performs with and without contextual skills.
+  # @deprecated Use {SkillBench::Services::RunnerService} instead.
   class Runner
     # Initiates a full evaluation run.
     #

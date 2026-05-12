@@ -133,8 +133,8 @@ module SkillBench
 
     def assign_attributes(data, dimensions)
       @context = data['context'] || data[:context] || ''
-      @pass_threshold = data['pass_threshold'] || data[:pass_threshold] || 70
-      @minimum_delta = data['minimum_delta'] || data[:minimum_delta] || 10
+      @pass_threshold = [data['pass_threshold'], data[:pass_threshold]].compact.first || 70
+      @minimum_delta = [data['minimum_delta'], data[:minimum_delta]].compact.first || 10
       @dimensions = dimensions
     end
   end

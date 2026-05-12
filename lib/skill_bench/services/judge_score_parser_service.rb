@@ -7,6 +7,7 @@ module SkillBench
     # Service object for parsing judge score responses from evaluation results.
     # Handles JSON strings with optional code blocks, Hash inputs, and provides
     # standardized error handling for malformed data.
+    # @deprecated Scoring is now handled internally by {SkillBench::Judge} and {SkillBench::DeltaReport}.
     class JudgeScoreParserService
       PARSE_ERROR = 'Failed to parse judge score'
 

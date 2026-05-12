@@ -10,11 +10,13 @@ module SkillBench
     #
     # @param system_prompt [String] System prompt for the LLM
     # @param messages [Array<Hash>] Conversation messages
-    # @param options [Hash] Provider-specific options
+    # @param provider [Symbol, nil] Override the configured LLM provider (e.g., :deepseek, :openai)
+    # @param options [Hash] Provider-specific options (api_key, model, etc.)
     # @return [Hash] Response from the LLM
-    def self.call(system_prompt:, messages:, **options)
-      provider = Config.current_llm_provider || :openai
-      client_class = Clients::ProviderRegistry.for(provider)
+    def self.call(system_prompt:, messages:, provider: nil, **options)
+      resolved = provider || Config.current_llm_provider || :openai
+      client_class = Clients::ProviderRegistry.for(resolved)
+      warn "WARNING: LLM provider '#{resolved}' is not configured. Falling back to null client." if client_class == Clients::Providers::NullClient
       client_class.call(system_prompt: system_prompt, messages: messages, **options)
     end
   end

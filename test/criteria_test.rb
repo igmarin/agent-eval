@@ -116,7 +116,36 @@ module SkillBench
       end
     end
 
+    def test_accepts_zero_threshold_and_delta
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, 'criteria.json'), zero_threshold_json)
+
+        result = Criteria.call(path: File.join(dir, 'criteria.json'))
+
+        assert result[:success]
+        criteria = result[:response][:criteria]
+
+        assert_equal 0, criteria.pass_threshold
+        assert_equal 0, criteria.minimum_delta
+      end
+    end
+
     private
+
+    def zero_threshold_json
+      {
+        context: 'Evaluate',
+        dimensions: [
+          { name: 'correctness', max_score: 30 },
+          { name: 'skill_adherence', max_score: 25 },
+          { name: 'code_quality', max_score: 20 },
+          { name: 'test_coverage', max_score: 15 },
+          { name: 'documentation', max_score: 10 }
+        ],
+        pass_threshold: 0,
+        minimum_delta: 0
+      }.to_json
+    end
 
     def valid_criteria_json
       {

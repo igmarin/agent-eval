@@ -6,6 +6,7 @@ module SkillBench
   module Services
     # Parses CLI arguments for the EvaluateCommand using Ruby's OptionParser.
     # Provides standardized error handling for invalid flags and missing arguments.
+    # @deprecated Use {SkillBench::Cli::RunCommand} option parsing instead.
     class OptionParserService
       # Parses command-line options into a hash.
       #
@@ -53,7 +54,7 @@ module SkillBench
 
           opts.on('-h', '--help', 'Prints this help') do
             puts opts
-            exit
+            raise SkillBench::HelpRequested
           end
         end
       end

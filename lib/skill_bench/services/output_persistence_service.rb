@@ -6,7 +6,9 @@ require 'fileutils'
 module SkillBench
   module Services
     # Service object for persisting evaluation results to JSON files.
-    # Handles directory creation, file writing, and provides standardized error handling.
+    # Handles file I/O, JSON serialization, and provides standardized error responses
+    # for filesystem operations.
+    # @deprecated Use {SkillBench::Cli::RunCommand} output handling instead.
     class OutputPersistenceService
       WRITE_ERROR = 'Failed to write output file'
 
