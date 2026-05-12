@@ -11,6 +11,8 @@ module SkillBench
     class RetryHandler
       RETRYABLE_STATUSES = [429, 503].freeze
 
+      MAX_DELAY = 30 # Maximum delay cap in seconds
+
       # Executes the given block with retry logic.
       #
       # @param max_attempts [Integer] Maximum number of attempts (default: 3).
@@ -18,9 +20,10 @@ module SkillBench
       # @yield The request block to execute.
       # @return [Object] The block's return value on success.
       # @raise [Faraday::Error] On non-retryable errors or after exhausting retries.
-      # @raise [ArgumentError] if no block is given.
+      # @raise [ArgumentError] if no block is given or max_attempts < 1.
       def self.call(max_attempts: 3, base_delay: 1, &block)
         raise ArgumentError, 'RetryHandler requires a block' unless block
+        raise ArgumentError, 'max_attempts must be >= 1' if max_attempts < 1
 
         new(max_attempts:, base_delay:, block:).call
       end
@@ -60,7 +63,7 @@ module SkillBench
       end
 
       def compute_delay(attempt)
-        @base_delay * (2**(attempt - 1))
+        [@base_delay * (2**(attempt - 1)), MAX_DELAY].min
       end
 
       def extract_status(error)

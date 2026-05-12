@@ -77,7 +77,6 @@ module SkillBench
 
     def test_returns_error_when_judge_fails
       criteria = build_criteria
-
       JudgePrompt.expects(:call).returns({ success: true, response: { prompt: 'Prompt' } })
       Judge.expects(:call).returns({ success: false, response: { error: { message: 'Judge failed' } } })
 
@@ -92,6 +91,33 @@ module SkillBench
 
       refute result[:success]
       assert_match(/Judge failed/, result[:response][:error][:message])
+    end
+
+    def test_handles_non_hash_judge_params
+      criteria = build_criteria
+      JudgePrompt.stubs(:call).returns({ success: true, response: { prompt: 'Prompt' } })
+      Judge.stubs(:call).returns({
+                                   success: true,
+                                   response: { judge_response: build_judge_response(10, 8, 6, 4, 2) }
+                                 })
+      DeltaReport.stubs(:call).returns({
+                                         success: true,
+                                         response: { delta_report: Struct.new(:verdict, :baseline_total,
+                                                                              :context_total, :deltas, :criteria, keyword_init: true).new(verdict: true,
+                                                                                                                                          baseline_total: 30, context_total: 80, deltas: {},
+                                                                                                                                          criteria: build_criteria) }
+                                       })
+
+      result = EvaluationRunner.call(
+        task: 'Test task',
+        criteria: criteria,
+        skill_context: '',
+        baseline_output: 'output',
+        context_output: 'output',
+        judge_params: 'invalid'
+      )
+
+      assert result[:success]
     end
 
     private

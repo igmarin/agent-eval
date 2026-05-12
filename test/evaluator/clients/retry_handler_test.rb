@@ -106,6 +106,17 @@ module SkillBench
         assert_equal 3, attempts
       end
 
+      def test_raises_on_invalid_max_attempts
+        assert_raises(ArgumentError) { RetryHandler.call(max_attempts: 0) { 'ok' } }
+        assert_raises(ArgumentError) { RetryHandler.call(max_attempts: -1) { 'ok' } }
+      end
+
+      def test_delay_is_capped_at_max
+        handler = RetryHandler.new(max_attempts: 10, base_delay: 1, block: -> { raise Faraday::ClientError.new('rate limited', status: 429) })
+
+        assert_equal 30, handler.send(:compute_delay, 10)
+      end
+
       def test_raises_argument_error_without_block
         assert_raises(ArgumentError) do
           RetryHandler.call

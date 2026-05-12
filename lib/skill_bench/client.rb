@@ -16,6 +16,7 @@ module SkillBench
     def self.call(system_prompt:, messages:, provider: nil, **options)
       resolved = provider || Config.current_llm_provider || :openai
       client_class = Clients::ProviderRegistry.for(resolved)
+      warn "WARNING: LLM provider '#{resolved}' is not configured. Falling back to null client." if client_class == Clients::Providers::NullClient
       client_class.call(system_prompt: system_prompt, messages: messages, **options)
     end
   end

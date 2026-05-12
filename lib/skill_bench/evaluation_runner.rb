@@ -31,7 +31,7 @@ module SkillBench
       @skill_context = skill_context
       @baseline_output = baseline_output
       @context_output = context_output
-      @judge_params = judge_params
+      @judge_params = judge_params.is_a?(Hash) ? judge_params : {}
     end
 
     # Orchestrates judging and delta computation.

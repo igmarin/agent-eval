@@ -43,15 +43,21 @@ module SkillBench
         skills = resolve_skills
         provider = resolve_provider
 
-        baseline_output = spawn_agent(evaluation, nil, provider)
+        config = begin
+          provider.merged_config
+        rescue StandardError
+          nil
+        end
+
+        baseline_output = spawn_agent(evaluation, nil, provider, config)
         return agent_error_result(baseline_output, 'baseline', evaluation, provider) if baseline_output[:status] == :error
 
-        context_output = spawn_agent(evaluation, skills, provider)
+        context_output = spawn_agent(evaluation, skills, provider, config)
         return agent_error_result(context_output, 'context', evaluation, provider) if context_output[:status] == :error
 
         criteria = evaluation.criteria
         skill_context = load_combined_skill_context(skills)
-        judge_params = build_judge_params(provider)
+        judge_params = build_judge_params(provider, config)
 
         result = EvaluationRunner.call(
           task: evaluation.task,
@@ -92,11 +98,15 @@ module SkillBench
         MOCK_PROVIDER.new('mock', 'mock', 'mock', {})
       end
 
-      def spawn_agent(evaluation, skills, provider)
+      def spawn_agent(evaluation, skills, provider, config)
         return { result: 'mock result', status: :success } if provider.name == 'mock'
 
         client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime.to_sym)
-        config = provider.merged_config
+        config ||= begin
+          provider.merged_config
+        rescue StandardError
+          nil
+        end
         options = config.dup
         options[:model] ||= provider.llm
 
@@ -108,9 +118,10 @@ module SkillBench
           **options
         )
 
+        status = response[:success] ? :success : :error
         {
           result: response[:result],
-          status: response[:success] ? :success : :error,
+          status: status,
           runtime: provider.runtime,
           usage: response[:usage],
           raw_response: response[:response]
@@ -129,10 +140,16 @@ module SkillBench
         File.exist?(skill_md) ? File.read(skill_md) : ''
       end
 
-      def build_judge_params(provider)
+      def build_judge_params(provider, config)
         return {} if provider.name == 'mock'
 
-        config = provider.merged_config
+        config ||= begin
+          provider.merged_config
+        rescue StandardError
+          nil
+        end
+        return {} unless config
+
         {
           api_key: config[:api_key],
           model: config[:model] || provider.llm,
