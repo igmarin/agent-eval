@@ -166,6 +166,18 @@ module SkillBench
         parsed = ResponseParser.parse_body(response)
         return failure_response(response, parsed) unless response.success?
 
+        body_error = parsed.is_a?(Hash) ? (parsed[:error] || parsed['error']) : nil
+        if body_error
+          error_msg = body_error.is_a?(Hash) ? (body_error[:message] || body_error['message']) : body_error.to_s
+          return {
+            success: false,
+            result: "API Error: #{error_msg}",
+            usage: extract_usage(parsed),
+            response: { error: { message: "API Error: #{error_msg}" } },
+            status: 'error'
+          }
+        end
+
         message = extract_message(parsed)
         return missing_message_response(response, parsed) unless ResponseParser.valid_message?(message)
 
@@ -188,6 +200,10 @@ module SkillBench
       end
 
       def missing_message_response(response, parsed)
+        SkillBench::ErrorLogger.log_error(
+          StandardError.new("LLM response missing message content. Response keys: #{parsed.is_a?(Hash) ? parsed.keys.inspect : parsed.class}"),
+          'BaseClient'
+        )
         ResponseErrorHandler.missing_message_response(response, parsed) { |body| extract_usage(body) }
       end
     end

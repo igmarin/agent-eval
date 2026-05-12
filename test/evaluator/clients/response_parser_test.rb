@@ -116,6 +116,26 @@ module SkillBench
 
         assert_equal({}, result)
       end
+
+      def test_parse_body_preserves_non_markdown_error
+        response = Struct.new(:body).new('Not Found')
+        result = ResponseParser.parse_body(response)
+
+        assert result[:error]
+        assert_equal 'Not Found', result[:error][:message]
+      end
+
+      def test_strip_markdown_fences
+        assert_equal '{"a":1}', ResponseParser.strip_markdown_fences("```json\n{\"a\":1}\n```")
+      end
+
+      def test_strip_markdown_fences_plain
+        assert_equal '{"a":1}', ResponseParser.strip_markdown_fences("```\n{\"a\":1}\n```")
+      end
+
+      def test_strip_markdown_fences_noop
+        assert_equal '{"a":1}', ResponseParser.strip_markdown_fences('{"a":1}')
+      end
     end
   end
 end

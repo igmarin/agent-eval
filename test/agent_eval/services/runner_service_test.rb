@@ -51,6 +51,33 @@ module SkillBench
         assert result[:response][:report].verdict
       end
 
+      def test_success_result_includes_metadata
+        write_mock_config
+
+        SkillBench::EvaluationRunner.expects(:call).returns({
+                                                              success: true,
+                                                              response: {
+                                                                report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
+                                                                                   keyword_init: true).new(
+                                                                                     verdict: true,
+                                                                                     baseline_total: 30,
+                                                                                     context_total: 80,
+                                                                                     deltas: { 'correctness' => 16 }
+                                                                                   )
+                                                              }
+                                                            })
+
+        result = RunnerService.call(
+          eval_name: 'test-eval',
+          skill_names: ['test-skill']
+        )
+
+        assert result[:success]
+        assert_equal 'test-eval', result[:eval_name]
+        assert_equal 'test-skill', result[:skill_name]
+        assert_equal 'mock', result[:provider_name]
+      end
+
       def test_call_raises_when_eval_not_found
         write_mock_config
 

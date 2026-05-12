@@ -71,9 +71,15 @@ module SkillBench
         return enrich_error_result(result, evaluation, provider) unless result[:success]
 
         trend = record_and_compute_trend(result)
-        return result unless trend
+        return enrich_error_result(result, evaluation, provider) unless trend
 
-        { success: true, response: result[:response].merge(trend: trend) }
+        {
+          success: true,
+          eval_name: eval_name,
+          skill_name: skill_names.join(', '),
+          provider_name: provider.name,
+          response: result[:response].merge(trend: trend)
+        }
       end
 
       private

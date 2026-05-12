@@ -24,7 +24,7 @@ Metrics/AbcSize:
   Max: 50
 
 Metrics/ClassLength:
-  Max: 150
+  Max: 170
   Exclude:
     - 'lib/skill_bench/cli.rb'
     - 'test/criteria_test.rb'

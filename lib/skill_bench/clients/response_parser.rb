@@ -20,6 +20,21 @@ module SkillBench
         { error: { message: response.body.to_s } }
       end
 
+      # Strips markdown code fences from a string if present.
+      #
+      # @param text [String] The text to clean
+      # @return [String] Cleaned text
+      def self.strip_markdown_fences(text)
+        if text.start_with?('```')
+          lines = text.each_line.to_a
+          lines.shift if lines.first&.strip&.start_with?('```')
+          lines.pop if lines.last&.strip == '```'
+          lines.join.strip
+        else
+          text
+        end
+      end
+
       # Checks if a message is valid (has content or tool calls).
       #
       # @param message [Hash, String, nil] The message to validate

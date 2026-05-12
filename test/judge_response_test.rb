@@ -79,6 +79,24 @@ module SkillBench
       assert_match(/correctness/, result[:response][:error][:message])
     end
 
+    def test_parses_markdown_fenced_json
+      result = JudgeResponse.call(json: "```json\n#{valid_judge_json}\n```")
+
+      assert result[:success]
+      response = result[:response][:judge_response]
+
+      assert_equal 28, response.dimensions['correctness'][:score]
+    end
+
+    def test_parses_plain_markdown_fenced_json
+      result = JudgeResponse.call(json: "```\n#{valid_judge_json}\n```")
+
+      assert result[:success]
+      response = result[:response][:judge_response]
+
+      assert_equal 28, response.dimensions['correctness'][:score]
+    end
+
     private
 
     def valid_judge_json

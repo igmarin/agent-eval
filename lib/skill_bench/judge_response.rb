@@ -52,10 +52,20 @@ module SkillBench
     attr_reader :json
 
     def parse_json
-      data = JSON.parse(json)
+      stripped = strip_markdown_fences(json)
+      data = JSON.parse(stripped)
       { success: true, response: { data: data } }
     rescue JSON::ParserError => e
       { success: false, response: { error: { message: "Invalid JSON: #{e.message}" } } }
+    end
+
+    def strip_markdown_fences(text)
+      return text unless text.start_with?('```')
+
+      lines = text.each_line.to_a
+      lines.shift if lines.first&.strip&.start_with?('```')
+      lines.pop if lines.last&.strip == '```'
+      lines.join.strip
     end
 
     def validate_structure(payload)
