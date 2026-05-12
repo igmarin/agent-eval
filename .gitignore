@@ -16,3 +16,4 @@ gems-report.csv
 *.gem
 examples/
 .skill-bench-history.json
+.lean-ctx/*
