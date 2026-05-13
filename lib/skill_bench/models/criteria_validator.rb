@@ -65,7 +65,7 @@ module SkillBench
 
       def validate_dimensions(dimensions)
         return invalid_dimensions_result unless dimensions.is_a?(Array)
-        return invalid_dimensions_result unless dimensions.all? { |dim| dim.is_a?(Hash) && dim[:name] && dim[:max_score] }
+        return invalid_dimensions_result unless dimensions.all? { |dim| dim.is_a?(Hash) && dim[:name] && dim.key?(:max_score) }
 
         total = dimensions.sum { |dim| dim[:max_score] || 0 }
         return score_sum_result(total) unless total == 100

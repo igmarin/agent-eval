@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 require 'time'
-require_relative 'history_persistence'
-require_relative 'trend_calculator'
+require_relative 'trend_tracker/persistence'
+require_relative 'trend_tracker/trend_calculator'
 
 module SkillBench
-  # Records evaluation results to a local history file and computes trends.
-  class BenchmarkRecorder
-    DEFAULT_HISTORY_FILE = '.skill-bench-history.json'
+  # Tracks evaluation results over time and computes trend deltas.
+  class TrendTracker
+    DEFAULT_HISTORY_FILE = '.skill-bench-trends.json'
 
     # @param history_file [String] Path to the history JSON file.
     def initialize(history_file: DEFAULT_HISTORY_FILE)
-      @persistence = HistoryPersistence.new(history_file)
+      @persistence = Persistence.new(history_file)
     end
 
     # Records an evaluation result.
@@ -27,7 +27,7 @@ module SkillBench
 
       { success: true, response: { recorded: true } }
     rescue StandardError => e
-      SkillBench::ErrorLogger.log_error(e, 'BenchmarkRecorder Error')
+      SkillBench::ErrorLogger.log_error(e, 'TrendTracker Error')
       { success: false, response: { error: { message: e.message } } }
     end
 

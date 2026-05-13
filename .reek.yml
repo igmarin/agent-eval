@@ -60,7 +60,7 @@ detectors:
   DuplicateMethodCall:
     exclude:
       - "SkillBench::AgentRunner#print_header"
-      - "SkillBench::BenchmarkRecorder#record"                   # Two different rescue blocks each use e.message — standard pattern
+      - "SkillBench::TrendTracker#record"                        # Two different rescue blocks each use e.message — standard pattern
       - "SkillBench::DeltaReport#compute_totals"
       - "SkillBench::OutputFormatter#self.format_delta_report"
       - "SkillBench::OutputFormatter#self.format_legacy_human"
@@ -236,6 +236,6 @@ detectors:
       - "SkillBench::Models::Config#self.load"
       - "SkillBench::OutputFormatter#self.delta_report?"
       - "SkillBench::Tools::Dispatcher#log_error"
-      - "SkillBench::BenchmarkRecorder#extract_entry"       # Duck-type guard for report objects from both production and test fixtures
+      - "SkillBench::TrendTracker#extract_entry"            # Duck-type guard for report objects from both production and test fixtures
       - "SkillBench::Clients::RetryHandler#extract_status"   # Duck-type dispatch across Faraday error classes with different APIs
       - "SkillBench::OutputFormatter#self.format_junit"      # Duck-type dispatch for backward compatibility with legacy result format

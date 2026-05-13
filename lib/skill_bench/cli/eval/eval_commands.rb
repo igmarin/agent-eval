@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../../eval_generator'
+require_relative '../../commands/eval_new'
 
 module SkillBench
   module Cli
@@ -23,6 +24,8 @@ module SkillBench
         #
         # @yield Block that implements the command logic
         # @return [Integer] Exit code from the block, 0 for help, or 1 on error
+        # @raise [HelpRequested] caught internally, returns 0
+        # @raise [StandardError] caught internally, prints to stderr and returns 1
         def run_with_rescue
           yield
         rescue HelpRequested

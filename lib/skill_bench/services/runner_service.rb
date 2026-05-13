@@ -7,7 +7,7 @@ require_relative '../models/config'
 require_relative '../models/provider'
 require_relative '../clients/all'
 require_relative 'skill_resolver'
-require_relative '../benchmark_recorder'
+require_relative '../trend_tracker'
 
 module SkillBench
   module Services
@@ -212,13 +212,13 @@ module SkillBench
       end
 
       def record_and_compute_trend(result)
-        recorder = BenchmarkRecorder.new
+        tracker = TrendTracker.new
         enriched = result.merge(eval_name: eval_name, skill_names: skill_names)
-        trend = recorder.trend_for(enriched)
-        recorder.record(enriched)
+        trend = tracker.trend_for(enriched)
+        tracker.record(enriched)
         trend
       rescue StandardError => e
-        SkillBench::ErrorLogger.log_error(e, 'Benchmark recording failed')
+        SkillBench::ErrorLogger.log_error(e, 'Trend tracking failed')
         nil
       end
     end

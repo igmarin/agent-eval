@@ -61,6 +61,11 @@ require_relative 'skill_bench/history_recorder'
 require_relative 'skill_bench/history_recorder/persistence_service'
 require_relative 'skill_bench/history_recorder/summary_service'
 
+# Trend tracking
+require_relative 'skill_bench/trend_tracker'
+require_relative 'skill_bench/trend_tracker/persistence'
+require_relative 'skill_bench/trend_tracker/trend_calculator'
+
 # Rails integrations
 require_relative 'skill_bench/rails/skill_templates'
 
