@@ -15,7 +15,7 @@ class JudgeTest < Minitest::Test
         params[:messages].first[:content] == prompt
     end.returns(client_response)
 
-    result = SkillBench::Judge.call(prompt: prompt)
+    result = SkillBench::Judge::Judge.call(prompt: prompt)
 
     assert result[:success]
     response = result[:response][:judge_response]
@@ -27,7 +27,7 @@ class JudgeTest < Minitest::Test
   def test_call_returns_error_on_client_failure
     SkillBench::Client.expects(:call).returns({ success: false, response: { error: { message: 'API failure' } } })
 
-    result = SkillBench::Judge.call(prompt: 'prompt')
+    result = SkillBench::Judge::Judge.call(prompt: 'prompt')
 
     refute result[:success]
     assert_equal 'API failure', result[:response][:error][:message]
@@ -39,7 +39,7 @@ class JudgeTest < Minitest::Test
                                                 response: { message: { 'content' => 'not json' } }
                                               })
 
-    result = SkillBench::Judge.call(prompt: 'prompt')
+    result = SkillBench::Judge::Judge.call(prompt: 'prompt')
 
     refute result[:success]
     assert_match(/Invalid JSON/, result[:response][:error][:message])

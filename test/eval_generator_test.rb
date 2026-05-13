@@ -19,7 +19,7 @@ module SkillBench
     end
 
     def test_generates_eval_from_skill_via_mock_fallback
-      generator = EvalGenerator.new(skill_name: 'test-skill', eval_name: 'test-skill-eval')
+      generator = Evaluation::Generator.new(skill_name: 'test-skill', eval_name: 'test-skill-eval')
 
       result = generator.call
 
@@ -36,7 +36,7 @@ module SkillBench
     end
 
     def test_generates_eval_from_skill_via_provider_client
-      generator = EvalGenerator.new(skill_name: 'test-skill', eval_name: 'test-skill-client')
+      generator = Evaluation::Generator.new(skill_name: 'test-skill', eval_name: 'test-skill-client')
 
       mock_provider = Struct.new(:name, :runtime, :llm, :merged_config).new('test', 'test', 'test', {})
       generator.stubs(:load_provider).returns(mock_provider)
@@ -49,7 +49,7 @@ module SkillBench
     end
 
     def test_returns_error_when_skill_missing
-      generator = EvalGenerator.new(skill_name: 'missing', eval_name: 'test-eval')
+      generator = Evaluation::Generator.new(skill_name: 'missing', eval_name: 'test-eval')
 
       result = generator.call
 
@@ -58,7 +58,7 @@ module SkillBench
     end
 
     def test_returns_error_when_eval_name_contains_path_traversal
-      generator = EvalGenerator.new(skill_name: 'test-skill', eval_name: '../../../etc/cron')
+      generator = Evaluation::Generator.new(skill_name: 'test-skill', eval_name: '../../../etc/cron')
 
       result = generator.call
 

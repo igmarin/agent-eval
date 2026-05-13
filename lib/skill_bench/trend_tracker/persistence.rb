@@ -37,7 +37,13 @@ module SkillBench
         temp_file = "#{history_file}.tmp"
         File.write(temp_file, json)
         File.rename(temp_file, history_file)
-        File.write("#{history_file}.bak", json)
+
+        begin
+          File.write("#{history_file}.bak", json)
+        rescue SystemCallError => e
+          warn "Backup write failed for #{history_file}: #{e.message}"
+        end
+
         { success: true }
       rescue SystemCallError => e
         { success: false, error: { message: e.message } }

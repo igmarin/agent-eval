@@ -2,7 +2,7 @@
 
 require 'pathname'
 require 'parallel'
-require_relative 'task_evaluator'
+require_relative 'task/evaluator'
 require_relative 'error_logger'
 
 module SkillBench
@@ -46,7 +46,7 @@ module SkillBench
       end
 
       results = Parallel.map(task_dirs, in_threads: 4) do |task_dir|
-        task_result = TaskEvaluator.call(
+        task_result = Task::Evaluator.call(
           full_eval_path: task_dir,
           base_path: @base_path,
           skill_path: @skill_path,

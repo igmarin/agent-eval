@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
-require_relative '../provider_schemas'
+require_relative '../clients/provider_schemas'
 
 module SkillBench
   module Commands
@@ -31,7 +31,7 @@ module SkillBench
         {
           provider: provider,
           max_execution_time: 30,
-          config: SkillBench::ProviderSchemas.for(provider)
+          config: SkillBench::Clients::ProviderSchemas.for(provider)
         }
       end
     end

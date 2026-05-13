@@ -57,7 +57,7 @@ module SkillBench
         skill_context = load_combined_skill_context(skills)
         judge_params = build_judge_params(provider, config)
 
-        result = EvaluationRunner.call(
+        result = Evaluation::Runner.call(
           task: evaluation.task,
           criteria: criteria,
           skill_context: skill_context,
@@ -215,7 +215,16 @@ module SkillBench
         tracker = TrendTracker.new
         enriched = result.merge(eval_name: eval_name, skill_names: skill_names)
         trend = tracker.trend_for(enriched)
-        tracker.record(enriched)
+        record_result = tracker.record(enriched)
+
+        unless record_result[:success]
+          SkillBench::ErrorLogger.log_error(
+            StandardError.new(record_result.dig(:error, :message) || 'Unknown error'),
+            "Trend tracking record failed for eval #{eval_name}"
+          )
+          return nil
+        end
+
         trend
       rescue StandardError => e
         SkillBench::ErrorLogger.log_error(e, 'Trend tracking failed')

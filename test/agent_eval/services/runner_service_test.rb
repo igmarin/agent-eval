@@ -35,18 +35,18 @@ module SkillBench
       def test_call_returns_result_for_mock_provider
         write_mock_config
 
-        SkillBench::EvaluationRunner.expects(:call).returns({
-                                                              success: true,
-                                                              response: {
-                                                                report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
-                                                                                   keyword_init: true).new(
-                                                                                     verdict: true,
-                                                                                     baseline_total: 30,
-                                                                                     context_total: 80,
-                                                                                     deltas: { 'correctness' => 16 }
-                                                                                   )
-                                                              }
-                                                            })
+        SkillBench::Evaluation::Runner.expects(:call).returns({
+                                                                success: true,
+                                                                response: {
+                                                                  report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
+                                                                                     keyword_init: true).new(
+                                                                                       verdict: true,
+                                                                                       baseline_total: 30,
+                                                                                       context_total: 80,
+                                                                                       deltas: { 'correctness' => 16 }
+                                                                                     )
+                                                                }
+                                                              })
 
         result = RunnerService.call(
           eval_name: 'test-eval',
@@ -60,18 +60,18 @@ module SkillBench
       def test_success_result_includes_metadata
         write_mock_config
 
-        SkillBench::EvaluationRunner.expects(:call).returns({
-                                                              success: true,
-                                                              response: {
-                                                                report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
-                                                                                   keyword_init: true).new(
-                                                                                     verdict: true,
-                                                                                     baseline_total: 30,
-                                                                                     context_total: 80,
-                                                                                     deltas: { 'correctness' => 16 }
-                                                                                   )
-                                                              }
-                                                            })
+        SkillBench::Evaluation::Runner.expects(:call).returns({
+                                                                success: true,
+                                                                response: {
+                                                                  report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
+                                                                                     keyword_init: true).new(
+                                                                                       verdict: true,
+                                                                                       baseline_total: 30,
+                                                                                       context_total: 80,
+                                                                                       deltas: { 'correctness' => 16 }
+                                                                                     )
+                                                                }
+                                                              })
 
         result = RunnerService.call(
           eval_name: 'test-eval',
@@ -150,10 +150,10 @@ module SkillBench
       def test_call_enriches_evaluation_runner_error_with_metadata
         write_mock_config
 
-        SkillBench::EvaluationRunner.expects(:call).returns({
-                                                              success: false,
-                                                              response: { error: { message: 'Judge error' } }
-                                                            })
+        SkillBench::Evaluation::Runner.expects(:call).returns({
+                                                                success: false,
+                                                                response: { error: { message: 'Judge error' } }
+                                                              })
 
         result = RunnerService.call(
           eval_name: 'test-eval',
@@ -170,15 +170,15 @@ module SkillBench
       def test_call_resolves_eval_with_full_path
         write_mock_config
 
-        SkillBench::EvaluationRunner.expects(:call).returns({
-                                                              success: true,
-                                                              response: {
-                                                                report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
-                                                                                   keyword_init: true).new(
-                                                                                     verdict: true, baseline_total: 30, context_total: 80, deltas: {}
-                                                                                   )
-                                                              }
-                                                            })
+        SkillBench::Evaluation::Runner.expects(:call).returns({
+                                                                success: true,
+                                                                response: {
+                                                                  report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
+                                                                                     keyword_init: true).new(
+                                                                                       verdict: true, baseline_total: 30, context_total: 80, deltas: {}
+                                                                                     )
+                                                                }
+                                                              })
 
         result = RunnerService.call(
           eval_name: 'evals/test-eval',

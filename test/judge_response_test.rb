@@ -5,7 +5,7 @@ require 'test_helper'
 module SkillBench
   class JudgeResponseTest < Minitest::Test
     def test_parses_valid_judge_json
-      result = JudgeResponse.call(json: valid_judge_json)
+      result = Judge::Response.call(json: valid_judge_json)
 
       assert result[:success]
       response = result[:response][:judge_response]
@@ -18,35 +18,35 @@ module SkillBench
     end
 
     def test_rejects_invalid_json
-      result = JudgeResponse.call(json: 'not json')
+      result = Judge::Response.call(json: 'not json')
 
       refute result[:success]
       assert_match(/Invalid JSON/, result[:response][:error][:message])
     end
 
     def test_rejects_missing_dimensions_key
-      result = JudgeResponse.call(json: { overall_reasoning: 'ok' }.to_json)
+      result = Judge::Response.call(json: { overall_reasoning: 'ok' }.to_json)
 
       refute result[:success]
       assert_match(/missing 'dimensions'/, result[:response][:error][:message])
     end
 
     def test_rejects_empty_dimensions
-      result = JudgeResponse.call(json: { dimensions: {}, overall_reasoning: 'ok' }.to_json)
+      result = Judge::Response.call(json: { dimensions: {}, overall_reasoning: 'ok' }.to_json)
 
       refute result[:success]
       assert_match(/empty/, result[:response][:error][:message])
     end
 
     def test_rejects_dimension_without_score
-      result = JudgeResponse.call(json: invalid_dimension_json)
+      result = Judge::Response.call(json: invalid_dimension_json)
 
       refute result[:success]
       assert_match(/missing score/, result[:response][:error][:message])
     end
 
     def test_accepts_integer_and_float_scores
-      result = JudgeResponse.call(json: mixed_scores_json)
+      result = Judge::Response.call(json: mixed_scores_json)
 
       assert result[:success]
       response = result[:response][:judge_response]
@@ -56,7 +56,7 @@ module SkillBench
     end
 
     def test_rejects_non_numeric_score
-      result = JudgeResponse.call(json: non_numeric_score_json)
+      result = Judge::Response.call(json: non_numeric_score_json)
 
       refute result[:success]
       assert_match(/invalid score/, result[:response][:error][:message])
@@ -64,7 +64,7 @@ module SkillBench
     end
 
     def test_rejects_score_out_of_bounds
-      result = JudgeResponse.call(json: out_of_bounds_score_json)
+      result = Judge::Response.call(json: out_of_bounds_score_json)
 
       refute result[:success]
       assert_match(/out of bounds/, result[:response][:error][:message])
@@ -72,7 +72,7 @@ module SkillBench
     end
 
     def test_rejects_negative_score
-      result = JudgeResponse.call(json: negative_score_json)
+      result = Judge::Response.call(json: negative_score_json)
 
       refute result[:success]
       assert_match(/out of bounds/, result[:response][:error][:message])
@@ -80,7 +80,7 @@ module SkillBench
     end
 
     def test_parses_markdown_fenced_json
-      result = JudgeResponse.call(json: "```json\n#{valid_judge_json}\n```")
+      result = Judge::Response.call(json: "```json\n#{valid_judge_json}\n```")
 
       assert result[:success]
       response = result[:response][:judge_response]
@@ -89,7 +89,7 @@ module SkillBench
     end
 
     def test_parses_plain_markdown_fenced_json
-      result = JudgeResponse.call(json: "```\n#{valid_judge_json}\n```")
+      result = Judge::Response.call(json: "```\n#{valid_judge_json}\n```")
 
       assert result[:success]
       response = result[:response][:judge_response]

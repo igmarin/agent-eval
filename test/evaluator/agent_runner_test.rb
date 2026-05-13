@@ -13,10 +13,10 @@ module SkillBench
     def test_call_baseline_runs_without_skill_context
       diff_output = "+class FooService\nend"
 
-      # Stub the entire AgentRunner.call to return expected values
-      AgentRunner.stubs(:call).returns(['I wrote the service.', diff_output])
+      # Stub the entire Agent::Runner.call to return expected values
+      Agent::Runner.stubs(:call).returns(['I wrote the service.', diff_output])
 
-      final_answer, diff = AgentRunner.call(
+      final_answer, diff = Agent::Runner.call(
         mode: :baseline,
         full_eval_path: @full_eval_path,
         task_content: @task_content,
@@ -28,10 +28,10 @@ module SkillBench
     end
 
     def test_call_context_mode_hydrates_system_prompt
-      # Stub the entire AgentRunner.call to return expected values
-      AgentRunner.stubs(:call).returns(['Done with context.', ''])
+      # Stub the entire Agent::Runner.call to return expected values
+      Agent::Runner.stubs(:call).returns(['Done with context.', ''])
 
-      final_answer, = AgentRunner.call(
+      final_answer, = Agent::Runner.call(
         mode: :context,
         full_eval_path: @full_eval_path,
         task_content: @task_content,
@@ -44,10 +44,10 @@ module SkillBench
     end
 
     def test_call_returns_error_message_on_agent_failure
-      # Stub the entire AgentRunner.call to return error message
-      AgentRunner.stubs(:call).returns(['Error: LLM call failed', ''])
+      # Stub the entire Agent::Runner.call to return error message
+      Agent::Runner.stubs(:call).returns(['Error: LLM call failed', ''])
 
-      final_answer, = AgentRunner.call(
+      final_answer, = Agent::Runner.call(
         mode: :baseline,
         full_eval_path: @full_eval_path,
         task_content: @task_content,

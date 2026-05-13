@@ -5,7 +5,7 @@ require 'test_helper'
 module SkillBench
   class AgentSummaryTest < Minitest::Test
     def test_builds_summary_from_result_hash
-      result = AgentSummary.call(
+      result = Agent::Summary.call(
         files_changed: ['app/models/user.rb', 'spec/models/user_spec.rb'],
         commands_run: ['rails g model User', 'rspec'],
         agent_reasoning: 'I created the User model and added tests'
@@ -20,7 +20,7 @@ module SkillBench
     end
 
     def test_builds_summary_with_defaults
-      result = AgentSummary.call
+      result = Agent::Summary.call
 
       assert result[:success]
       summary = result[:response][:agent_summary]

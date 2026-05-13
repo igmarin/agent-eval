@@ -25,10 +25,10 @@ module SkillBench
         }
         File.write('skill-bench.json', JSON.generate(config))
 
-        SkillBench::EvaluationRunner.stubs(:call).returns({
-                                                            success: true,
-                                                            response: { report: build_report_struct }
-                                                          })
+        SkillBench::Evaluation::Runner.stubs(:call).returns({
+                                                              success: true,
+                                                              response: { report: build_report_struct }
+                                                            })
       end
 
       def teardown
@@ -64,7 +64,7 @@ module SkillBench
         FileUtils.mkdir_p('skills/second-skill')
         File.write('skills/second-skill/SKILL.md', 'Second skill')
 
-        SkillBench::EvaluationRunner.expects(:call).with do |args|
+        SkillBench::Evaluation::Runner.expects(:call).with do |args|
           args[:skill_context].include?('Test skill') && args[:skill_context].include?('Second skill')
         end.returns({
                       success: true,

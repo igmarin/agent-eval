@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../../eval_generator'
+require_relative '../../evaluation/generator'
 require_relative '../../commands/eval_new'
 
 module SkillBench
@@ -81,7 +81,7 @@ module SkillBench
             return error_missing('skill name is required') unless skill_name
 
             eval_name = options_parser.options[:eval_name] || "#{skill_name}-eval"
-            result = EvalGenerator.new(skill_name: skill_name, eval_name: eval_name).call
+            result = Evaluation::Generator.new(skill_name: skill_name, eval_name: eval_name).call
 
             if result[:success]
               puts "Generated eval: #{eval_name} from skill: #{skill_name}"

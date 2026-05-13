@@ -40,7 +40,7 @@ module SkillBench
         def filter_matching_entries(entries, current_entry)
           entries.select do |entry|
             entry[:eval_name] == current_entry[:eval_name] &&
-              entry[:skill_names] == current_entry[:skill_names]
+              entry[:skill_names].sort == current_entry[:skill_names].sort
           end
         end
 

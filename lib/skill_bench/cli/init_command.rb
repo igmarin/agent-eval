@@ -54,13 +54,13 @@ module SkillBench
       end
 
       def register_provider_options(parser, options)
-        SkillBench::ProviderSchemas.names.each do |name|
+        SkillBench::Clients::ProviderSchemas.names.each do |name|
           parser.on("--#{name}", "Generate config for #{name.to_s.capitalize}") { options[:provider] = name }
         end
       end
 
       def error_missing_provider
-        providers = SkillBench::ProviderSchemas.names.map { |provider_name| "--#{provider_name}" }.join(', ')
+        providers = SkillBench::Clients::ProviderSchemas.names.map { |provider_name| "--#{provider_name}" }.join(', ')
         warn "Error: provider is required. Use one of: #{providers}"
         1
       end

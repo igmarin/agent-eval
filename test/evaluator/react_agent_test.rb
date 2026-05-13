@@ -13,10 +13,10 @@ module SkillBench
         container_id: nil
       }
 
-      ReactAgent::LoopRunner.expects(:call).with('Initial', 5, expected_config).returns({ success: true })
+      Agent::ReactAgent::LoopRunner.expects(:call).with('Initial', 5, expected_config).returns({ success: true })
 
       # Act
-      result = ReactAgent.call(
+      result = Agent::ReactAgent.call(
         system_prompt: 'System',
         initial_prompt: 'Initial',
         max_iterations: 5,
