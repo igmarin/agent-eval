@@ -8,7 +8,7 @@ module SkillBench
       #
       # @return [Integer] Exit code (always 0)
       def self.call
-        providers = SkillBench::ProviderSchemas.names.map { |name| "--#{name}" }.join(', ')
+        providers = SkillBench::Clients::ProviderSchemas.names.map { |name| "--#{name}" }.join(', ')
 
         puts <<~USAGE
           Usage: skill-bench <subcommand> [options]

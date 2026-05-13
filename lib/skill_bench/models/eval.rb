@@ -53,9 +53,9 @@ module SkillBench
       # @raise [RuntimeError] if JSON is malformed or criteria validation fails
       def self.load_criteria(path)
         criteria_json = path.join('criteria.json')
-        return Criteria.empty unless criteria_json.exist?
+        return SkillBench::Criteria.empty unless criteria_json.exist?
 
-        result = Criteria.call(path: criteria_json.to_s)
+        result = SkillBench::Criteria.call(path: criteria_json.to_s)
         response = result[:response]
         return response[:criteria] if result[:success]
 

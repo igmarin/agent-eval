@@ -38,7 +38,7 @@ module SkillBench
     end
 
     def test_full_eval_pipeline
-      EvaluationRunner.expects(:call).with do |params|
+      Evaluation::Runner.expects(:call).with do |params|
         params[:task] == 'Create a simple Ruby service object' &&
           params[:skill_context].include?('Service Object Pattern') &&
           params[:baseline_output].is_a?(String) &&
@@ -82,7 +82,7 @@ module SkillBench
         { success: true, result: 'agent output', usage: {}, response: { message: { content: 'agent output' } }, status: 'success' }
       )
 
-      EvaluationRunner.expects(:call).with do |params|
+      Evaluation::Runner.expects(:call).with do |params|
         params[:task] == 'Create a simple Ruby service object' &&
           params[:skill_context].include?('Service Object Pattern') &&
           params[:baseline_output].is_a?(String) &&

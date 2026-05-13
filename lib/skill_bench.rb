@@ -10,23 +10,43 @@
 require_relative 'skill_bench/version'
 require_relative 'skill_bench/dimension'
 require_relative 'skill_bench/criteria'
-require_relative 'skill_bench/judge_response'
-require_relative 'skill_bench/judge_prompt'
-require_relative 'skill_bench/agent_summary'
 require_relative 'skill_bench/delta_report'
-require_relative 'skill_bench/evaluation_runner'
 require_relative 'skill_bench/cli'
 require_relative 'skill_bench/config'
-require_relative 'skill_bench/agent_runner'
-require_relative 'skill_bench/judge'
-require_relative 'skill_bench/sandbox'
 require_relative 'skill_bench/output_formatter'
-require_relative 'skill_bench/context_hydrator'
 require_relative 'skill_bench/client'
-require_relative 'skill_bench/react_agent'
+
+# Judge subsystem
+require_relative 'skill_bench/judge'
+require_relative 'skill_bench/judge/judge'
+require_relative 'skill_bench/judge/prompt'
+require_relative 'skill_bench/judge/response'
+
+# Agent subsystem
+require_relative 'skill_bench/agent'
+require_relative 'skill_bench/agent/runner'
+require_relative 'skill_bench/agent/summary'
+require_relative 'skill_bench/agent/react_agent'
+
+# Task subsystem
+require_relative 'skill_bench/task'
+require_relative 'skill_bench/task/evaluator'
+require_relative 'skill_bench/task/file_reader'
+
+# Evaluation orchestration
+require_relative 'skill_bench/evaluation'
+require_relative 'skill_bench/evaluation/runner'
+require_relative 'skill_bench/evaluation/generator'
+
+# Execution environment
+require_relative 'skill_bench/execution'
+require_relative 'skill_bench/execution/context_hydrator'
+require_relative 'skill_bench/execution/sandbox'
+require_relative 'skill_bench/execution/source_path_resolver'
 
 # Clients
 require_relative 'skill_bench/clients/all'
+require_relative 'skill_bench/clients/provider_schemas'
 
 # Config management
 require_relative 'skill_bench/config/store'
@@ -39,6 +59,7 @@ require_relative 'skill_bench/config/facade_writers'
 
 # Models
 require_relative 'skill_bench/models/config'
+require_relative 'skill_bench/models/criteria_validator'
 require_relative 'skill_bench/models/eval'
 require_relative 'skill_bench/models/skill'
 require_relative 'skill_bench/models/provider'
@@ -60,6 +81,11 @@ require_relative 'skill_bench/history_recorder'
 require_relative 'skill_bench/history_recorder/persistence_service'
 require_relative 'skill_bench/history_recorder/summary_service'
 
+# Trend tracking
+require_relative 'skill_bench/trend_tracker'
+require_relative 'skill_bench/trend_tracker/persistence'
+require_relative 'skill_bench/trend_tracker/trend_calculator'
+
 # Rails integrations
 require_relative 'skill_bench/rails/skill_templates'
 
@@ -74,5 +100,3 @@ require_relative 'skill_bench/package_verifier'
 
 # Utility modules
 require_relative 'skill_bench/error_logger'
-require_relative 'skill_bench/task_file_reader'
-require_relative 'skill_bench/source_path_resolver'

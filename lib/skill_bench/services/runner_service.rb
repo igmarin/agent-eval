@@ -7,11 +7,12 @@ require_relative '../models/config'
 require_relative '../models/provider'
 require_relative '../clients/all'
 require_relative 'skill_resolver'
-require_relative '../benchmark_recorder'
+require_relative '../trend_tracker'
 
 module SkillBench
   module Services
     # Orchestrates the execution of an eval with baseline and context runs.
+    # rubocop:disable Metrics/ClassLength
     class RunnerService
       # Stand-in provider when no LLM config is available.
       MOCK_PROVIDER = Struct.new(:name, :runtime, :llm, :merged_config)
@@ -57,7 +58,7 @@ module SkillBench
         skill_context = load_combined_skill_context(skills)
         judge_params = build_judge_params(provider, config)
 
-        result = EvaluationRunner.call(
+        result = Evaluation::Runner.call(
           task: evaluation.task,
           criteria: criteria,
           skill_context: skill_context,
@@ -68,15 +69,15 @@ module SkillBench
 
         return enrich_error_result(result, evaluation, provider) unless result[:success]
 
-        trend = record_and_compute_trend(result)
-        return enrich_error_result(result, evaluation, provider) unless trend
+        trend_result = record_and_compute_trend(result)
+        return enrich_error_result(trend_result, evaluation, provider) unless trend_result[:success]
 
         {
           success: true,
           eval_name: eval_name,
           skill_name: skill_names.join(', '),
           provider_name: provider.name,
-          response: result[:response].merge(trend: trend)
+          response: result[:response].merge(trend: trend_result[:trend])
         }
       end
 
@@ -212,15 +213,40 @@ module SkillBench
       end
 
       def record_and_compute_trend(result)
-        recorder = BenchmarkRecorder.new
+        tracker = TrendTracker.new
         enriched = result.merge(eval_name: eval_name, skill_names: skill_names)
-        trend = recorder.trend_for(enriched)
-        recorder.record(enriched)
-        trend
+        trend = tracker.trend_for(enriched)
+        record_result = tracker.record(enriched)
+
+        record_success = record_result.is_a?(Hash) && record_result[:success]
+        unless record_success
+          message = if record_result.is_a?(Hash)
+                      record_result.dig(:response, :error, :message) ||
+                        record_result.dig(:error, :message) ||
+                        'Unknown error'
+                    else
+                      'Unexpected record response'
+                    end
+          SkillBench::ErrorLogger.log_error(
+            StandardError.new(message),
+            "Trend tracking record failed for eval #{eval_name}"
+          )
+          return {
+            success: false,
+            response: {
+              error: {
+                message: "Trend tracking record failed: #{message}",
+                record_result: record_result
+              }
+            }
+          }
+        end
+        { success: true, trend: trend }
       rescue StandardError => e
-        SkillBench::ErrorLogger.log_error(e, 'Benchmark recording failed')
-        nil
+        SkillBench::ErrorLogger.log_error(e, 'Trend tracking failed')
+        { success: false, response: { error: { message: e.message } } }
       end
+      # rubocop:enable Metrics/ClassLength
     end
   end
 end

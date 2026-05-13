@@ -11,7 +11,7 @@ module SkillBench
       )
 
       # Act
-      result = ReactAgent::LoopRunner.call('Initial', 10, { client_params: {} })
+      result = Agent::ReactAgent::LoopRunner.call('Initial', 10, { client_params: {} })
 
       # Assert
       assert result[:success]
@@ -37,7 +37,7 @@ module SkillBench
       Tools.expects(:execute).with('run_command', '{"command":"echo 1"}', anything, nil).returns('Tool Result')
 
       # Act
-      result = ReactAgent::LoopRunner.call('Initial', 10, { working_dir: Dir.pwd, client_params: {} })
+      result = Agent::ReactAgent::LoopRunner.call('Initial', 10, { working_dir: Dir.pwd, client_params: {} })
 
       # Assert
       assert result[:success]
@@ -61,7 +61,7 @@ module SkillBench
       Tools.stubs(:execute).returns('Tool Result')
 
       # Act
-      result = ReactAgent::LoopRunner.call('Initial', 2, { working_dir: Dir.pwd, client_params: {} })
+      result = Agent::ReactAgent::LoopRunner.call('Initial', 2, { working_dir: Dir.pwd, client_params: {} })
 
       # Assert
       refute result[:success]

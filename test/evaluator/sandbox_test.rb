@@ -16,21 +16,21 @@ class SandboxTest < Minitest::Test
 
   def test_run_copies_files_and_initializes_git
     # Mock Docker to avoid running real containers in unit tests
-    SkillBench::Sandbox.any_instance.stubs(:start_container)
-    SkillBench::Sandbox.any_instance.stubs(:stop_container)
+    SkillBench::Execution::Sandbox.any_instance.stubs(:start_container)
+    SkillBench::Execution::Sandbox.any_instance.stubs(:stop_container)
 
-    SkillBench::Sandbox.run(@source_dir) do |sandbox|
+    SkillBench::Execution::Sandbox.run(@source_dir) do |sandbox|
       assert_path_exists File.join(sandbox.path, 'test_file.txt')
       assert_path_exists File.join(sandbox.path, '.git')
 
       # Test diff is empty initially
-      diff = SkillBench::Sandbox.capture_diff(sandbox.path)
+      diff = SkillBench::Execution::Sandbox.capture_diff(sandbox.path)
 
       assert_equal 'No code changes made.', diff
 
       # Make a change
       File.write(File.join(sandbox.path, 'test_file.txt'), 'hello updated')
-      diff = SkillBench::Sandbox.capture_diff(sandbox.path)
+      diff = SkillBench::Execution::Sandbox.capture_diff(sandbox.path)
 
       assert_includes diff, 'hello updated'
     end

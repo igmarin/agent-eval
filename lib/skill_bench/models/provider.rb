@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../provider_schemas'
+require_relative '../clients/provider_schemas'
 
 module SkillBench
   module Models
@@ -8,7 +8,7 @@ module SkillBench
     class Provider
       attr_reader :name, :runtime, :llm, :config
 
-      ALLOWED_PROVIDERS = (ProviderSchemas.names.map(&:to_s) + %w[mock]).freeze
+      ALLOWED_PROVIDERS = (Clients::ProviderSchemas.names.map(&:to_s) + %w[mock]).freeze
 
       # Settings that can be overridden via environment variables.
       ENV_OVERRIDABLE_SETTINGS = %i[api_key model base_url endpoint location project_id api_version].freeze

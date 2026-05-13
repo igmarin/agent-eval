@@ -27,13 +27,13 @@ module SkillBench
           { success: true, response: { message: { 'content' => 'ok', 'tool_calls' => [] } } }
         )
 
-        Step.call(@messages, config)
+        Agent::ReactAgent::Step.call(@messages, config)
       end
 
       def test_call_returns_continue_false_on_client_failure
         Client.expects(:call).returns({ success: false, response: { error: { message: 'API Error' } } })
 
-        result = Step.call(@messages, @config)
+        result = Agent::ReactAgent::Step.call(@messages, @config)
 
         refute result[:continue]
         refute result[:result][:success]
@@ -45,7 +45,7 @@ module SkillBench
           { success: true, response: { message: { 'content' => 'Final Answer', 'tool_calls' => [] } } }
         )
 
-        result = Step.call(@messages, @config)
+        result = Agent::ReactAgent::Step.call(@messages, @config)
 
         refute result[:continue]
         assert result[:result][:success]
@@ -65,9 +65,9 @@ module SkillBench
           }
         )
 
-        ToolExecutor.expects(:call).returns([{ role: 'tool', tool_call_id: 'call_1', content: 'result' }])
+        Agent::ReactAgent::ToolExecutor.expects(:call).returns([{ role: 'tool', tool_call_id: 'call_1', content: 'result' }])
 
-        result = Step.call(@messages, @config)
+        result = Agent::ReactAgent::Step.call(@messages, @config)
 
         assert result[:continue]
         assert_equal 3, result[:messages].length # user, assistant, tool

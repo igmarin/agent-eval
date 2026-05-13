@@ -18,24 +18,24 @@ module SkillBench
         response: { judge_response: build_judge_response(25, 20, 15, 12, 8) }
       }
 
-      Judge.expects(:call).with(prompt: 'Baseline prompt', client_params: {}).returns(judge_baseline)
-      Judge.expects(:call).with(prompt: 'Context prompt', client_params: {}).returns(judge_context)
+      Judge::Judge.expects(:call).with(prompt: 'Baseline prompt', client_params: {}).returns(judge_baseline)
+      Judge::Judge.expects(:call).with(prompt: 'Context prompt', client_params: {}).returns(judge_context)
 
-      JudgePrompt.expects(:call).with(
+      Judge::Prompt.expects(:call).with(
         task: 'Test task',
         criteria: criteria,
         skill_context: '',
         agent_output: baseline_output
       ).returns({ success: true, response: { prompt: 'Baseline prompt' } })
 
-      JudgePrompt.expects(:call).with(
+      Judge::Prompt.expects(:call).with(
         task: 'Test task',
         criteria: criteria,
         skill_context: 'Skill context',
         agent_output: context_output
       ).returns({ success: true, response: { prompt: 'Context prompt' } })
 
-      result = EvaluationRunner.call(
+      result = Evaluation::Runner.call(
         task: 'Test task',
         criteria: criteria,
         skill_context: 'Skill context',
@@ -57,13 +57,13 @@ module SkillBench
       criteria = build_criteria
       judge_params = { api_key: 'test-key', model: 'deepseek-chat', provider: :deepseek }
 
-      JudgePrompt.expects(:call).twice.returns({ success: true, response: { prompt: 'Prompt' } })
-      Judge.expects(:call).with(prompt: 'Prompt', client_params: judge_params).twice.returns({
-                                                                                               success: true,
-                                                                                               response: { judge_response: build_judge_response(10, 8, 6, 4, 2) }
-                                                                                             })
+      Judge::Prompt.expects(:call).twice.returns({ success: true, response: { prompt: 'Prompt' } })
+      Judge::Judge.expects(:call).with(prompt: 'Prompt', client_params: judge_params).twice.returns({
+                                                                                                      success: true,
+                                                                                                      response: { judge_response: build_judge_response(10, 8, 6, 4, 2) }
+                                                                                                    })
 
-      result = EvaluationRunner.call(
+      result = Evaluation::Runner.call(
         task: 'Test task',
         criteria: criteria,
         skill_context: '',
@@ -77,10 +77,10 @@ module SkillBench
 
     def test_returns_error_when_judge_fails
       criteria = build_criteria
-      JudgePrompt.expects(:call).returns({ success: true, response: { prompt: 'Prompt' } })
-      Judge.expects(:call).returns({ success: false, response: { error: { message: 'Judge failed' } } })
+      Judge::Prompt.expects(:call).returns({ success: true, response: { prompt: 'Prompt' } })
+      Judge::Judge.expects(:call).returns({ success: false, response: { error: { message: 'Judge failed' } } })
 
-      result = EvaluationRunner.call(
+      result = Evaluation::Runner.call(
         task: 'Test task',
         criteria: criteria,
         skill_context: '',
@@ -95,11 +95,11 @@ module SkillBench
 
     def test_handles_non_hash_judge_params
       criteria = build_criteria
-      JudgePrompt.stubs(:call).returns({ success: true, response: { prompt: 'Prompt' } })
-      Judge.stubs(:call).returns({
-                                   success: true,
-                                   response: { judge_response: build_judge_response(10, 8, 6, 4, 2) }
-                                 })
+      Judge::Prompt.stubs(:call).returns({ success: true, response: { prompt: 'Prompt' } })
+      Judge::Judge.stubs(:call).returns({
+                                          success: true,
+                                          response: { judge_response: build_judge_response(10, 8, 6, 4, 2) }
+                                        })
       DeltaReport.stubs(:call).returns({
                                          success: true,
                                          response: { delta_report: Struct.new(:verdict, :baseline_total,
@@ -108,7 +108,7 @@ module SkillBench
                                                                                                                                           criteria: build_criteria) }
                                        })
 
-      result = EvaluationRunner.call(
+      result = Evaluation::Runner.call(
         task: 'Test task',
         criteria: criteria,
         skill_context: '',
@@ -139,7 +139,7 @@ module SkillBench
     end
 
     def build_judge_response(correctness, skill, quality, coverage, docs)
-      JudgeResponse.new(json: '').tap do |jr|
+      Judge::Response.new(json: '').tap do |jr|
         jr.instance_variable_set(:@dimensions, {
                                    'correctness' => { score: correctness, max_score: 30, reasoning: '' },
                                    'skill_adherence' => { score: skill, max_score: 25, reasoning: '' },

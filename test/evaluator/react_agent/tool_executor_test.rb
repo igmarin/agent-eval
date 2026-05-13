@@ -12,7 +12,7 @@ module SkillBench
 
         Tools.expects(:execute).with('read_file', '{"path":"test.txt"}', Dir.pwd, nil).returns('file content')
 
-        result = ToolExecutor.call(tool_calls, Dir.pwd)
+        result = Agent::ReactAgent::ToolExecutor.call(tool_calls, Dir.pwd)
 
         assert_equal 1, result.length
         assert_equal 'tool', result.first[:role]

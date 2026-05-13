@@ -50,7 +50,7 @@ module SkillBench
     def test_call_fails_without_context_when_source_path_cannot_be_inferred
       create_eval_fixture('tmp/custom-evals/unmapped-task')
 
-      AgentRunner.expects(:call).never
+      Agent::Runner.expects(:call).never
 
       result = Runner.call(
         eval_folder_path: 'tmp/custom-evals/unmapped-task',
@@ -73,15 +73,15 @@ module SkillBench
     def expect_single_task_run(source_path:)
       judge_result = { success: true, response: { content: '{"baseline_score":60,"context_score":85,"reasoning":"context is better"}' } }
 
-      AgentRunner.expects(:call).with(
+      Agent::Runner.expects(:call).with(
         has_entries(mode: :baseline)
       ).returns(%w[baseline_output baseline_diff]).once
 
-      AgentRunner.expects(:call).with(
+      Agent::Runner.expects(:call).with(
         has_entries(mode: :context, source_path: source_path)
       ).returns(%w[context_output context_diff]).once
 
-      Judge.expects(:call).returns(judge_result).once
+      Judge::Judge.expects(:call).returns(judge_result).once
     end
   end
 end

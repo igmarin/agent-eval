@@ -6,7 +6,7 @@ module SkillBench
   class JudgePromptTest < Minitest::Test
     def test_builds_prompt_with_all_sections
       criteria = build_criteria
-      result = JudgePrompt.call(
+      result = Judge::Prompt.call(
         task: 'Create a REST API',
         criteria: criteria,
         skill_context: '<agent_context><file path="skill.md">Skill content</file></agent_context>',
@@ -24,7 +24,7 @@ module SkillBench
 
     def test_returns_error_when_task_missing
       criteria = build_criteria
-      result = JudgePrompt.call(
+      result = Judge::Prompt.call(
         task: '',
         criteria: criteria,
         skill_context: 'context',
@@ -36,7 +36,7 @@ module SkillBench
     end
 
     def test_returns_error_when_criteria_missing
-      result = JudgePrompt.call(
+      result = Judge::Prompt.call(
         task: 'Create API',
         criteria: nil,
         skill_context: 'context',
@@ -49,7 +49,7 @@ module SkillBench
 
     def test_returns_error_when_agent_output_nil
       criteria = build_criteria
-      result = JudgePrompt.call(
+      result = Judge::Prompt.call(
         task: 'Create API',
         criteria: criteria,
         skill_context: 'context',
@@ -62,7 +62,7 @@ module SkillBench
 
     def test_returns_error_when_skill_context_nil
       criteria = build_criteria
-      result = JudgePrompt.call(
+      result = Judge::Prompt.call(
         task: 'Create API',
         criteria: criteria,
         skill_context: nil,
