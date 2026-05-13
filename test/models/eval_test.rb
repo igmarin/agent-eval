@@ -23,7 +23,7 @@ module SkillBench
 
         assert_equal 'test-eval', eval.name
         assert_equal 'Test task', eval.task
-        assert_instance_of Criteria, eval.criteria
+        assert_instance_of SkillBench::Criteria, eval.criteria
         assert_equal 5, eval.criteria.dimensions.size
         assert_equal 70, eval.criteria.pass_threshold
         assert_equal 10, eval.criteria.minimum_delta
@@ -38,7 +38,7 @@ module SkillBench
 
         assert_equal 'test-eval', eval.name
         assert_equal 'Test task', eval.task
-        assert_instance_of Criteria, eval.criteria
+        assert_instance_of SkillBench::Criteria, eval.criteria
         assert_equal [], eval.criteria.dimensions
       end
 

@@ -3,6 +3,9 @@
 require 'json'
 require 'fileutils'
 require_relative 'services/skill_resolver'
+require_relative 'error_logger'
+require_relative 'models/config'
+require_relative 'models/criteria'
 
 module SkillBench
   # Generates an eval (task.md + criteria.json) from a skill's documentation.
@@ -61,7 +64,7 @@ module SkillBench
       write_eval_files(sanitized, generated[:response][:data])
 
       criteria_path = File.join('evals', sanitized, 'criteria.json')
-      validation = Criteria.call(path: criteria_path)
+      validation = SkillBench::Models::Criteria.call(path: criteria_path)
       return validation unless validation[:success]
 
       { success: true, response: { eval_path: "evals/#{sanitized}" } }

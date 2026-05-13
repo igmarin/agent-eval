@@ -1,0 +1,1 @@
+Apply the skill patterns to solve a representative task.
