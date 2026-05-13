@@ -216,6 +216,13 @@ module SkillBench
         FileUtils.mkdir_p(source_dir)
         File.write(File.join(source_dir, 'app.rb'), '# frozen_string_literal: true')
 
+        SkillBench::Execution::ContextHydrator.expects(:call).with do |args|
+          args[:source_path] == 'evals/test-eval/source' && args[:base_path].is_a?(Pathname)
+        end.returns({
+                      success: true,
+                      response: { context: '<agent_context><file path="app.rb">content</file></agent_context>' }
+                    })
+
         SkillBench::Evaluation::Runner.expects(:call).returns({
                                                                 success: true,
                                                                 response: {
@@ -240,6 +247,8 @@ module SkillBench
         File.write(File.join(@eval_dir, 'metadata.json'), {
           'context_mode' => 'skill_bundle_xml'
         }.to_json)
+
+        SkillBench::Execution::ContextHydrator.expects(:call).never
 
         SkillBench::Evaluation::Runner.expects(:call).returns({
                                                                 success: true,

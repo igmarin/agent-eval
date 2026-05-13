@@ -52,18 +52,18 @@ module SkillBench
 
         config = config_result[:config]
         baseline_prompt = build_baseline_system_prompt
-        context_prompt = build_context_system_prompt(evaluation, skills)
 
         baseline_output = spawn_agent(evaluation, baseline_prompt, provider, config)
         return agent_error_result(baseline_output, 'baseline', evaluation, provider) if baseline_output[:status] == :error
 
+        skill_context = load_combined_skill_context(skills)
+        return empty_context_error_result(evaluation, provider) if skill_context.strip.empty?
+
+        context_prompt = build_context_system_prompt(evaluation, skills)
         context_output = spawn_agent(evaluation, context_prompt, provider, config)
         return agent_error_result(context_output, 'context', evaluation, provider) if context_output[:status] == :error
 
         criteria = evaluation.criteria
-        skill_context = load_combined_skill_context(skills)
-
-        return empty_context_error_result(evaluation, provider) if skill_context.strip.empty?
 
         judge_params = build_judge_params(provider, config)
 

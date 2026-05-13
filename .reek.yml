@@ -121,7 +121,7 @@ detectors:
     exclude:
       - "SkillBench::Tools"
       - "SkillBench::Services::RunnerService"
-      - "SkillBench::Judge::Response"
+      - "SkillBench::Judge::Response"                      # Dimension name+hash pair naturally travel together in hash iteration
   FeatureEnvy:
     exclude:
       - "SkillBench::CLI#call"
@@ -192,6 +192,7 @@ detectors:
       - "SkillBench::HistoryRecorder#self.summarize"
       - "SkillBench::HistoryRecorder::HistoryPathResolverTest#with_env"
       - "SkillBench::Judge::Prompt#call"
+      - "SkillBench::Judge::Prompt#valid_skill_context?"            # nil is valid for baseline runs — deliberate nil check
       - "SkillBench::Judge::Response#extract_dimensions"
       - "SkillBench::Judge::Response#validate_dimension"
       - "SkillBench::Judge::Response#validate_structure"
@@ -201,7 +202,7 @@ detectors:
       - "SkillBench::Tools::RunCommand#self.call"
       - "SkillBench::Evaluation::Generator#generate_eval"   # Guards against missing provider config — nil is a valid state here
       - "SkillBench::Evaluation::Generator#sanitize_eval_name" # Guards against nil/blank input — defensive boundary
-      - "SkillBench::Services::RunnerService#resolve_source_path"
+      - "SkillBench::Services::RunnerService#resolve_source_path"          # Guard against nil return from SourcePathResolver — valid defensive check
       - "SkillBench::Services::RunnerService#load_combined_skill_context"  # Guards against nil skills array — defensive boundary
       - "SkillBench::Clients::Providers::OpenCode#missing_config_keys"     # Base URL is optional; nil check validates required config
       - "SkillBench::Models::Provider#merged_config"                       # API key is mandatory; nil check provides clear error message
