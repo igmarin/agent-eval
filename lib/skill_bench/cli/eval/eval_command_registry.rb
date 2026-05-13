@@ -5,7 +5,8 @@ module SkillBench
     module Eval
       # Registry for eval command handlers
       class EvalCommandRegistry
-        # Maps action names to command classes
+        # @api private
+        # Maps eval action names to their handler classes
         COMMANDS = {
           'new' => NewEvalCommand,
           'generate' => GenerateEvalCommand,
@@ -17,7 +18,7 @@ module SkillBench
         # @param action [String] Command action name
         # @return [Class<BaseEvalCommand>, nil] Command class or nil if not found
         def self.get_command(action)
-          return COMMANDS['help'] if action.nil? || action.match?(/^(-h|--help|help)$/)
+          return COMMANDS['help'] if action.nil? || %w[-h --help help].include?(action)
 
           COMMANDS[action]
         end

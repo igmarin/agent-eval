@@ -26,16 +26,20 @@ module SkillBench
       []
     end
 
-    # Writes history to file with atomic operation and backup
+    # Writes history to file with atomic operation and backup.
+    # Returns a result hash so callers do not need to rescue SystemCallError.
     #
     # @param history [Array<Hash>] History entries to write
-    # @raise [SystemCallError] If file operations fail due to permissions or I/O errors
+    # @return [Hash] { success: true } on success, { success: false, error: { message: '...' } } on failure
     def write(history)
       json = JSON.pretty_generate(history)
       temp_file = "#{history_file}.tmp"
       File.write(temp_file, json)
       File.rename(temp_file, history_file)
-      File.write("#{history_file}.bak", json) if File.exist?(history_file)
+      File.write("#{history_file}.bak", json)
+      { success: true }
+    rescue SystemCallError => e
+      { success: false, error: { message: e.message } }
     end
 
     private

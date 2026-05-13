@@ -4,8 +4,8 @@ require 'json'
 
 module SkillBench
   module Models
-    # Validates and processes evaluation criteria
-    class Criteria
+    # Validates evaluation criteria JSON structure without building rich objects.
+    class CriteriaValidator
       # Validates criteria from a JSON file
       #
       # @param path [String] Path to criteria JSON file

@@ -45,6 +45,8 @@ detectors:
       - "SkillBench::Clients::Providers::OpenCode"
       - "SkillBench::Clients::Providers::OpenRouter"
       - "SkillBench::Config::Store"
+      - "SkillBench::Cli::Eval::NewEvalOptions"                 # @options set by parent BaseEvalOptions#initialize — Template Method
+      - "SkillBench::Cli::Eval::GenerateEvalOptions"            # @options set by parent BaseEvalOptions#initialize — Template Method
   MissingSafeMethod:
     enabled: false
   ControlParameter:
@@ -58,6 +60,7 @@ detectors:
   DuplicateMethodCall:
     exclude:
       - "SkillBench::AgentRunner#print_header"
+      - "SkillBench::BenchmarkRecorder#record"                   # Two different rescue blocks each use e.message — standard pattern
       - "SkillBench::DeltaReport#compute_totals"
       - "SkillBench::OutputFormatter#self.format_delta_report"
       - "SkillBench::OutputFormatter#self.format_legacy_human"
@@ -86,6 +89,7 @@ detectors:
       - "SkillBench::Tools::Base#verify_component_safety!"
       - "SkillBench::Tools::Dispatcher#log_error"
       - "SkillBench::Tools::WriteFile#self.call"
+      - "SkillBench::Models::CriteriaValidator#validate_dimensions" # dim[:max_score] accessed in all? and sum — different semantic purposes
   UncommunicativeVariableName:
     accept:
       - d
@@ -110,6 +114,7 @@ detectors:
       - "SkillBench::Clients::Providers::Anthropic"
       - "SkillBench::Config::Store"
       - "SkillBench::Config"
+      - "SkillBench::Services::RunnerService"                    # 16 methods — orchestration class, refactor deferred
   DataClump:
     exclude:
       - "SkillBench::Tools"
@@ -154,6 +159,10 @@ detectors:
       - "SkillBench::EvalGenerator#generate_eval"                    # Delegates to provider registry and client — provider interaction is the domain
       - "SkillBench::EvalGenerator#write_eval_files"                 # Writes generated JSON criteria hash — data serialization is the domain
       - "SkillBench::EvalGenerator#build_criteria_hash"              # Builds criteria hash from parsed JSON — data transformation is the domain
+      - "SkillBench::Models::CriteriaValidator#validate_dimensions"   # Iterating dimension hash entries — hash access is the domain
+      - "SkillBench::Services::RunnerService#resolve_provider_config"  # Thin delegation wrapper — calling provider is the purpose
+      - "SkillBench::Services::RunnerService#safe_merged_config"       # Thin delegation wrapper — calling provider is the purpose
+      - "SkillBench::Services::RunnerService#build_judge_params"        # Builds hash from provider attrs — config extraction is the domain
   BooleanParameter:
     exclude:
       - "SkillBench::Commands::Init#self.run"
@@ -188,6 +197,8 @@ detectors:
       - "SkillBench::Services::RunnerService#load_combined_skill_context"  # Guards against nil skills array — defensive boundary
       - "SkillBench::Clients::Providers::OpenCode#missing_config_keys"     # Base URL is optional; nil check validates required config
       - "SkillBench::Models::Provider#merged_config"                       # API key is mandatory; nil check provides clear error message
+      - "SkillBench::Cli::Eval::EvalCommandRegistry#self.get_command"      # argv.shift can return nil — defensive boundary
+      - "SkillBench::Models::CriteriaValidator#validate_required_fields"   # Hash key presence check — necessary validation
   NestedIterators:
     exclude:
       - "SkillBench::CLI#handle_eval_new"
@@ -200,6 +211,8 @@ detectors:
       - "SkillBench::EvaluateCommand#parse_options"
       - "SkillBench::OutputFormatter#self.format_delta_report"
       - "SkillBench::Services::OptionParserService#parser"
+      - "SkillBench::Cli::Eval::NewEvalOptions#create_parser"     # OptionParser block + opts.on block — inherent API
+      - "SkillBench::Cli::Eval::GenerateEvalOptions#create_parser" # OptionParser block + opts.on block — inherent API
   RepeatedConditional:
     exclude:
       - "SkillBench::OutputFormatter"
@@ -209,6 +222,7 @@ detectors:
     exclude:
       - "SkillBench::Skills::New#initialize"
       - "SkillBench::Skills::TestService#initialize"
+      - "SkillBench::Cli::Eval::BaseEvalCommand#call"           # Abstract base class — argv is interface contract for subclasses
   LongParameterList:
     max_params: 6
     exclude:

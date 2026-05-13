@@ -56,7 +56,7 @@ module SkillBench
 
       # Characterization test: Handles eval generate with custom name
       def test_eval_generate_with_custom_name
-        exit_code = EvalCommand.call(['generate', 'test-skill', '--name', 'custom-eval'])
+        exit_code = EvalCommand.call(%w[generate test-skill --name custom-eval])
 
         assert_equal 0, exit_code
         assert_match(/Generated eval: custom-eval from skill: test-skill/, $stdout.string)
@@ -89,10 +89,26 @@ module SkillBench
 
       # Characterization test: Handles missing skill name for generate
       def test_eval_generate_missing_skill_shows_error
-        exit_code = EvalCommand.call(['generate'])
+        exit_code = EvalCommand.call(%w[generate])
 
         assert_equal 1, exit_code
         assert_match(/Error: skill name is required/, $stderr.string)
+      end
+
+      # Characterization test: Handles non-existent skill for generate
+      def test_eval_generate_nonexistent_skill_shows_error
+        exit_code = EvalCommand.call(%w[generate nonexistent-skill])
+
+        assert_equal 1, exit_code
+        assert_match(/Error: Skill not found: nonexistent-skill/, $stderr.string)
+      end
+
+      # Characterization test: Handles generate with invalid eval name
+      def test_eval_generate_invalid_name_shows_error
+        exit_code = EvalCommand.call(%w[generate test-skill --name ..])
+
+        assert_equal 1, exit_code
+        assert_match(/Error: Invalid eval name/, $stderr.string)
       end
 
       # Characterization test: Handles help flag for new command
@@ -105,7 +121,7 @@ module SkillBench
 
       # Characterization test: Handles help flag for generate command
       def test_eval_generate_help_shows_usage
-        exit_code = EvalCommand.call(['generate', '--help'])
+        exit_code = EvalCommand.call(%w[generate --help])
 
         assert_equal 0, exit_code
         assert_match(/Usage: skill-bench eval generate/, $stdout.string)

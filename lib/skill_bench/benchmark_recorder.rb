@@ -21,14 +21,12 @@ module SkillBench
     def record(result)
       history = @persistence.load
       history << extract_entry(result)
-      @persistence.write(history)
+      write_result = @persistence.write(history)
+
+      return { success: false, response: { error: write_result[:error] } } unless write_result[:success]
 
       { success: true, response: { recorded: true } }
-    rescue SystemCallError => e
-      # Handle file system errors (permissions, disk space, etc.) without logging
-      { success: false, response: { error: { message: e.message } } }
     rescue StandardError => e
-      # Handle other unexpected errors with logging
       SkillBench::ErrorLogger.log_error(e, 'BenchmarkRecorder Error')
       { success: false, response: { error: { message: e.message } } }
     end

@@ -2,16 +2,24 @@
 
 require 'test_helper'
 require 'json'
+require 'stringio'
 
 module SkillBench
+  # Fake report struct for benchmark recorder tests.
+  FakeReport = Struct.new(:verdict, :baseline_total, :context_total, :deltas, keyword_init: true)
+
   class BenchmarkRecorderCharacterizationTest < Minitest::Test
     def setup
       @tmp_dir = Dir.mktmpdir('benchmark_char_test')
       @history_file = File.join(@tmp_dir, 'history.json')
       @recorder = BenchmarkRecorder.new(history_file: @history_file)
+
+      @original_stderr = $stderr
+      $stderr = StringIO.new
     end
 
     def teardown
+      $stderr = @original_stderr
       FileUtils.rm_rf(@tmp_dir)
     end
 
@@ -33,7 +41,7 @@ module SkillBench
 
       assert entry['timestamp']
       assert_equal 'test-eval', entry['eval_name']
-      assert_equal ['test-skill'], entry['skill_names']
+      assert_equal %w[test-skill], entry['skill_names']
       assert entry['verdict']
       assert_equal 30, entry['baseline_total']
       assert_equal 80, entry['context_total']
@@ -85,6 +93,19 @@ module SkillBench
       assert_equal :unchanged, trend[:context_trend] # Matches first entry
     end
 
+    # Characterization test: Handles corruption when both main and backup are corrupt
+    def test_load_history_returns_empty_when_both_corrupted
+      @recorder.record(build_complete_result)
+
+      File.write(@history_file, 'invalid json{')
+      File.write("#{@history_file}.bak", 'also invalid{')
+
+      history = @recorder.history
+
+      assert_equal [], history
+      assert_match(/History file .* corrupted/, $stderr.string)
+    end
+
     # Characterization test: Error handling during recording
     def test_record_handles_errors_gracefully
       # Make file unwritable
@@ -106,7 +127,7 @@ module SkillBench
         eval_name: eval_name,
         skill_names: skill_names,
         response: {
-          report: Struct.new(:verdict, :baseline_total, :context_total, :deltas, keyword_init: true).new(
+          report: FakeReport.new(
             verdict: true,
             baseline_total: baseline_total,
             context_total: context_total,

@@ -39,7 +39,7 @@ require_relative 'skill_bench/config/facade_writers'
 
 # Models
 require_relative 'skill_bench/models/config'
-require_relative 'skill_bench/models/criteria'
+require_relative 'skill_bench/models/criteria_validator'
 require_relative 'skill_bench/models/eval'
 require_relative 'skill_bench/models/skill'
 require_relative 'skill_bench/models/provider'
