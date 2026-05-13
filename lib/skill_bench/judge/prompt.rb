@@ -36,7 +36,7 @@ module SkillBench
         return missing_task_result if task.nil? || task.strip.empty?
         return missing_criteria_result if criteria.nil?
         return missing_agent_output_result if agent_output.nil? || agent_output.to_s.strip.empty?
-        return missing_skill_context_result if skill_context.nil? || skill_context.to_s.strip.empty?
+        return missing_skill_context_result if skill_context.is_a?(String) && skill_context.strip.empty?
 
         prompt = assemble_prompt
         { success: true, response: { prompt: prompt } }
