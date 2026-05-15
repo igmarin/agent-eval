@@ -167,6 +167,99 @@ All service objects use the `.call` class method and return a standardized hash:
 
 ---
 
+### Using TemplateRegistry for Rapid Eval Scaffolding
+
+For programmatic eval creation, use `SkillBench::Services::TemplateRegistry` to generate scaffolding from pre-built templates. This is ideal for automating eval creation or building tools on top of SkillBench.
+
+**Basic Usage:**
+
+```ruby
+require 'skill_bench'
+
+# Generate a task template for a CRUD service
+task_content = SkillBench::Services::TemplateRegistry.call(
+  :task_md, 
+  :crud, 
+  skill_name: "UserCreator"
+)
+
+# Generate criteria JSON for an API client
+criteria_content = SkillBench::Services::TemplateRegistry.call(:criteria_json, :api)
+
+# Generate skill instructions for a background job
+skill_content = SkillBench::Services::TemplateRegistry.call(
+  :skill_md, 
+  :background_job, 
+  skill_name: "OrderProcessor"
+)
+```
+
+**Available Template Types:**
+
+| Type | Output | Purpose |
+|------|--------|---------|
+| `task_md` | Markdown | Agent prompt with requirements |
+| `criteria_json` | JSON | Scoring rules and dimensions |
+| `skill_md` | Markdown | Skill instructions for the agent |
+
+**Supported Categories:**
+
+| Category | Use Case |
+|----------|----------|
+| `crud` | Service Objects with Create, Read, Update, Delete |
+| `api` | API clients with authentication and error handling |
+| `background_job` | ActiveJob/Sidekiq workers with retry logic |
+| `controller` | RESTful controllers with strong parameters |
+| `model` | ActiveRecord models with validations |
+| `migration` | Database migrations with indexes |
+| `concern` | ActiveSupport::Concern modules |
+| `policy` | Authorization policies (Pundit-style) |
+| `form_object` | Form objects with validations |
+| `view_component` | ViewComponent components with previews |
+
+**Variable Interpolation:**
+
+Templates support `{{variable_name}}` syntax for dynamic content:
+
+```ruby
+# Custom variables are interpolated into templates
+task = SkillBench::Services::TemplateRegistry.call(
+  :task_md, 
+  :api, 
+  skill_name: "PaymentGateway",
+  endpoint: "/api/v1/payments"
+)
+```
+
+**Complete Workflow Example:**
+
+```ruby
+require 'fileutils'
+require 'skill_bench'
+
+# Define your skill name
+skill_name = "OrderService"
+
+# Generate all eval scaffolding
+task_md = SkillBench::Services::TemplateRegistry.call(:task_md, :crud, skill_name: skill_name)
+criteria_json = SkillBench::Services::TemplateRegistry.call(:criteria_json, :crud)
+skill_md = SkillBench::Services::TemplateRegistry.call(:skill_md, :crud, skill_name: skill_name)
+
+# Write to disk
+FileUtils.mkdir_p("evals/order-service")
+File.write("evals/order-service/task.md", task_md)
+File.write("evals/order-service/criteria.json", criteria_json)
+
+FileUtils.mkdir_p("skills/order-service")
+File.write("skills/order-service/SKILL.md", skill_md)
+
+puts "Eval scaffolding created for #{skill_name}!"
+```
+
+> **Note:** `TemplateRegistry` is a pure function with no side effects. It returns template strings that you can customize before writing to disk.
+
+---
+
 #### 3. Create an Eval
 
 You have two options: manual or auto-generated.

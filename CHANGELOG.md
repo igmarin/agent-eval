@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `TemplateRegistry` service for programmatic eval scaffolding with 10 Rails pattern categories (`crud`, `api`, `background_job`, `controller`, `model`, `migration`, `concern`, `policy`, `form_object`, `view_component`)
+- `TemplateRegistry` supports three template types: `task_md`, `criteria_json`, `skill_md`
+- `TemplateRegistry` variable interpolation using `{{variable_name}}` syntax
+- `Eval` model now loads and exposes metadata from `metadata.json`
+- `RunnerService` context-aware system prompts with `skill_bundle_xml` context mode
+- `RunnerService` source path resolution via `SourcePathResolver` for context hydration
 - `ProviderSchemas` registry for provider configuration templates (8 providers: OpenAI, Anthropic, Gemini, Azure, Ollama, Groq, DeepSeek, OpenCode)
 - `SkillResolver` service for resolving skills by path or name with recursive discovery
 - `Cli::InitCommand`, `Cli::RunCommand`, `Cli::SkillCommand`, `Cli::EvalCommand` — extracted CLI subcommand handlers

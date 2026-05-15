@@ -72,6 +72,7 @@ require_relative 'skill_bench/commands/eval_new'
 
 # Services
 require_relative 'skill_bench/services/runner_service'
+require_relative 'skill_bench/services/template_registry'
 
 # Tools
 require_relative 'skill_bench/tools'

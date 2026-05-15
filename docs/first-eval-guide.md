@@ -191,6 +191,69 @@ This reads `skills/my-service/SKILL.md` and generates both `task.md` and `criter
 
 ---
 
+### Option C — Using TemplateRegistry (Programmatic)
+
+For automated eval creation or building tools on top of SkillBench, use `TemplateRegistry` to generate scaffolding from pre-built templates.
+
+**Basic Usage:**
+
+```ruby
+require 'skill_bench'
+
+# Generate all eval files from templates
+task_md = SkillBench::Services::TemplateRegistry.call(:task_md, :crud, skill_name: "UserCreator")
+criteria_json = SkillBench::Services::TemplateRegistry.call(:criteria_json, :crud)
+skill_md = SkillBench::Services::TemplateRegistry.call(:skill_md, :crud, skill_name: "UserCreator")
+
+# Write to disk
+FileUtils.mkdir_p("evals/user-creator")
+File.write("evals/user-creator/task.md", task_md)
+File.write("evals/user-creator/criteria.json", criteria_json)
+
+FileUtils.mkdir_p("skills/user-creator")
+File.write("skills/user-creator/SKILL.md", skill_md)
+```
+
+**Available Categories:**
+
+| Category | Use Case |
+|----------|----------|
+| `crud` | Service Objects with Create, Read, Update, Delete |
+| `api` | API clients with authentication and error handling |
+| `background_job` | ActiveJob/Sidekiq workers with retry logic |
+| `controller` | RESTful controllers with strong parameters |
+| `model` | ActiveRecord models with validations |
+| `migration` | Database migrations with indexes |
+| `concern` | ActiveSupport::Concern modules |
+| `policy` | Authorization policies (Pundit-style) |
+| `form_object` | Form objects with validations |
+| `view_component` | ViewComponent components with previews |
+
+**Template Types:**
+
+| Type | Output | Purpose |
+|------|--------|---------|
+| `task_md` | Markdown | Agent prompt with requirements |
+| `criteria_json` | JSON | Scoring rules and dimensions |
+| `skill_md` | Markdown | Skill instructions for the agent |
+
+**Variable Interpolation:**
+
+Templates support `{{variable_name}}` syntax for dynamic content:
+
+```ruby
+task = SkillBench::Services::TemplateRegistry.call(
+  :task_md, 
+  :api, 
+  skill_name: "PaymentGateway",
+  endpoint: "/api/v1/payments"
+)
+```
+
+> **Tip:** `TemplateRegistry` returns template strings you can customize before writing to disk. It's a pure function with no side effects.
+
+---
+
 ## Step 5: Run the Eval
 
 ```bash

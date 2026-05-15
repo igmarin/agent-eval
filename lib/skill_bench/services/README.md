@@ -105,6 +105,101 @@ result = ScoringService.call(
 #    }
 ```
 
+### TemplateRegistry
+
+Resolves and renders evaluation templates by type and category. Provides pre-built templates for generating eval scaffolding (task descriptions, scoring criteria, and skill instructions) across supported Rails pattern categories.
+
+**Responsibilities:**
+- Provide template strings for task.md, criteria.json, and skill.md
+- Support variable interpolation using `{{variable_name}}` syntax
+- Validate template types and categories
+- Return rendered template content
+
+**Template Types:**
+
+| Type | Output | Purpose |
+|------|--------|---------|
+| `task_md` | Markdown | Agent prompt with requirements |
+| `criteria_json` | JSON | Scoring rules and dimensions |
+| `skill_md` | Markdown | Skill instructions for the agent |
+
+**Supported Categories:**
+
+| Category | Use Case |
+|----------|----------|
+| `crud` | Service Objects with Create, Read, Update, Delete |
+| `api` | API clients with authentication and error handling |
+| `background_job` | ActiveJob/Sidekiq workers with retry logic |
+| `controller` | RESTful controllers with strong parameters |
+| `model` | ActiveRecord models with validations |
+| `migration` | Database migrations with indexes |
+| `concern` | ActiveSupport::Concern modules |
+| `policy` | Authorization policies (Pundit-style) |
+| `form_object` | Form objects with validations |
+| `view_component` | ViewComponent components with previews |
+
+**Usage:**
+
+```ruby
+# Generate a task template for a CRUD service
+task_content = TemplateRegistry.call(:task_md, :crud, skill_name: "UserCreator")
+# => "# Task: Implement UserCreator (crud)\n\n## Objective\n..."
+
+# Generate criteria JSON for an API client
+criteria_content = TemplateRegistry.call(:criteria_json, :api)
+# => "{\n  \"category\": \"api\",\n  \"dimensions\": [...]"
+
+# Generate skill instructions for a background job
+skill_content = TemplateRegistry.call(:skill_md, :background_job, skill_name: "OrderProcessor")
+# => "# Skill: OrderProcessor (background_job)\n\n## Pattern\n..."
+```
+
+**Variable Interpolation:**
+
+Templates support `{{variable_name}}` syntax for dynamic content:
+
+```ruby
+# Custom variables are interpolated into templates
+task = TemplateRegistry.call(
+  :task_md, 
+  :api, 
+  skill_name: "PaymentGateway",
+  endpoint: "/api/v1/payments"
+)
+
+# Unmatched placeholders are left intact
+template = TemplateRegistry.call(:task_md, :crud)
+# => Contains "{{skill_name}}" if no variable provided
+```
+
+**Error Handling:**
+
+- Raises `ArgumentError` for invalid template types (must be `:task_md`, `:criteria_json`, or `:skill_md`)
+- Raises `ArgumentError` for invalid categories (must be one of the 10 supported categories)
+- Error messages include the invalid value and list valid options
+
+**Integration Example:**
+
+```ruby
+require 'fileutils'
+require 'skill_bench'
+
+# Generate eval scaffolding programmatically
+skill_name = "OrderService"
+
+task_md = SkillBench::Services::TemplateRegistry.call(:task_md, :crud, skill_name: skill_name)
+criteria_json = SkillBench::Services::TemplateRegistry.call(:criteria_json, :crud)
+skill_md = SkillBench::Services::TemplateRegistry.call(:skill_md, :crud, skill_name: skill_name)
+
+# Write to disk
+FileUtils.mkdir_p("evals/order-service")
+File.write("evals/order-service/task.md", task_md)
+File.write("evals/order-service/criteria.json", criteria_json)
+
+FileUtils.mkdir_p("skills/order-service")
+File.write("skills/order-service/SKILL.md", skill_md)
+```
+
 ## Response Contract
 
 All services follow the standardized response contract:
