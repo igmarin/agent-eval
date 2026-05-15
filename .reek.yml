@@ -237,8 +237,12 @@ detectors:
     exclude:
       - "SkillBench::Evaluation::Runner#initialize"
       - "SkillBench::Models::Eval#initialize"
+  TooManyConstants:
+    exclude:
+      - "SkillBench::Services::TemplateRegistry"                   # Registry class — lookup tables are the domain
   ManualDispatch:
     exclude:
+      - "SkillBench::Services::TemplateRegistry#fetch_template"    # Dynamic dispatch to build_* methods — template type selects builder
       - "SkillBench::Clients::ResponseErrorHandler#self.log_error"
       - "SkillBench::ErrorLogger#log_error"
       - "SkillBench::HistoryRecorder::PersistenceService#self.log_error"
