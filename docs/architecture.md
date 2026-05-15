@@ -39,6 +39,14 @@ Ruby Skill Bench provides a reproducible and isolated environment for testing AI
 - `SkillCommand` — Scaffolds new skills with templates
 - `EvalCommand` — Creates evaluation scenarios
 
+### `SkillBench::Services::TemplateRegistry`
+
+- Provides pre-built templates for generating eval scaffolding
+- Supports three template types: `task_md`, `criteria_json`, `skill_md`
+- Offers 10 Rails pattern categories: `crud`, `api`, `background_job`, `controller`, `model`, `migration`, `concern`, `policy`, `form_object`, `view_component`
+- Enables variable interpolation using `{{variable_name}}` syntax
+- Used for programmatic eval creation and tool building
+
 ### `SkillBench::Sandbox`
 
 - Uses `Dir.mktmpdir` for isolation.
