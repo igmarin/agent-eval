@@ -17,15 +17,17 @@ module SkillBench
         def self.call(tool_calls, working_dir, container_id = nil)
           tool_calls.map do |tool_call|
             function_name = tool_call.dig('function', 'name')
-            return tool_error_result(tool_call, 'Missing function name') unless function_name
+            next tool_error_message(tool_call, 'Missing function name') unless function_name
 
-            warn "=== Calling Tool: #{function_name} ==="
-            warn 'Args: [REDACTED]'
+            warn "=== Calling Tool: #{function_name} ===" unless defined?(Minitest)
 
             result = execute_tool(tool_call, working_dir, container_id)
-            return result unless result.is_a?(Hash) && result[:role] == 'tool'
-
-            result
+            if result.is_a?(Hash) && result[:role] == 'tool'
+              result
+            else
+              error_msg = result.dig(:response, :error, :message) || 'Unknown tool error'
+              tool_error_message(tool_call, error_msg)
+            end
           end
         end
 
@@ -49,6 +51,19 @@ module SkillBench
         rescue StandardError => e
           SkillBench::ErrorLogger.log_error(e, "Tool execution failed: #{function_name}")
           tool_error_result(tool_call, e.message)
+        end
+
+        # Builds a tool error message for the conversation history.
+        #
+        # @param tool_call [Hash] The tool call hash.
+        # @param message [String] The error message.
+        # @return [Hash] Tool message with error content.
+        def self.tool_error_message(tool_call, message)
+          {
+            role: 'tool',
+            tool_call_id: tool_call['id'],
+            content: "Error: #{message}"
+          }
         end
 
         # Builds an error result for a failed tool call.

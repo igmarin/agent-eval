@@ -2,6 +2,9 @@
 
 ![Ruby Skill Bench Logo](https://github.com/user-attachments/assets/056d7ca4-8671-41ec-9efb-e323b73fb135)
 
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/igmarin/ruby-skill-bench?utm_source=oss&utm_medium=github&utm_campaign=igmarin%2Fruby-skill-bench&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 *A high-fidelity evaluation engine for benchmarking AI agent skills across any stack (Rails-first, but extensible).*
 
 ---
@@ -359,7 +362,8 @@ SkillBench creates and manages three files in your project. Understanding them h
   "allowed_commands": ["rspec", "bundle", "ruby", "git"],
   "config": {
     "api_key": "sk-...",
-    "model": "gpt-4o"
+    "model": "gpt-4o",
+    "max_iterations": 25
   }
 }
 ```
@@ -641,6 +645,17 @@ These 5 dimensions are **mandatory** in every `criteria.json`. You can add custo
   Provider: openai
 ═══════════════════════════════════════════════════════
 
+  === BASELINE ITERATIONS ===
+  Step 1: Read task → Tool: read_file → Observation: content...
+  Step 2: Plan changes → Tool: write_file → Observation: Success...
+  Step 3: Run tests → Tool: run_command → Observation: 3 runs, 0 failures
+  Step 4: Final answer
+
+  === CONTEXT ITERATIONS ===
+  Step 1: Read task → Tool: read_file → Observation: content...
+  Step 2: Apply skill pattern → Tool: write_file, run_command → Observation: Success...
+  Step 3: Final answer
+
   DIMENSION                BASELINE   CONTEXT    DELTA
   ──────────────────────── ───────── ───────── ───────
   Correctness (30)                12        28     +16
@@ -654,6 +669,17 @@ These 5 dimensions are **mandatory** in every `criteria.json`. You can add custo
   TREND: baseline ↑ (+2), context ↑ (+7)
   VERDICT: PASS (threshold: 70, minimum delta: 10)
 ═══════════════════════════════════════════════════════
+
+  === WHAT WENT WELL ===
+  Correctness (28/30, baseline: 12/30)
+    The agent correctly implemented all required behaviors.
+  Skill Adherence (22/25, baseline: 5/25)
+    Followed the service object pattern and hard gates.
+
+  === WHAT WENT WRONG ===
+  Test Coverage (13/15, baseline: 3/15)
+    Tests exist but edge cases are missing.
+    Advice: Are there meaningful tests? Do they test the right things?
 ```
 
 **What each column means:**
@@ -664,6 +690,16 @@ These 5 dimensions are **mandatory** in every `criteria.json`. You can add custo
 - **TOTAL:** Sum of all dimension scores. Max possible is 100.
 - **TREND:** Comparison against the previous run of the same eval + skill (from `.skill-bench-history.json`). Shows whether scores are improving over time.
 - **VERDICT:** `PASS` only if `CONTEXT >= pass_threshold` AND `DELTA >= minimum_delta`.
+
+**Iteration timeline:**
+
+Each run (baseline and context) shows the ReAct loop steps the agent took: thinking, calling tools, and observing results. This helps you understand *how* the agent worked through the task. Observations are truncated to keep the output readable. If the timeline is empty, the agent finished in a single LLM call without using tools.
+
+**Feedback sections:**
+
+- **WHAT WENT WELL** — Dimensions where the context score is ≥ 80% of the max, with the judge's reasoning. These are the strengths of your skill.
+- **WHAT WENT WRONG** — Dimensions where the context score is < 80% of the max, with the judge's reasoning and the baseline score for comparison. These are where your skill needs work.
+- **ADVICE** — Each low-scoring dimension shows its description from `criteria.json` as actionable guidance. If the description is empty, no advice line appears.
 
 **Verdict Decision Matrix**
 

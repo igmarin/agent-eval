@@ -6,7 +6,8 @@ module SkillBench
   # Verdict is true when context score meets pass_threshold AND
   # the total delta meets minimum_delta.
   class DeltaReport
-    attr_reader :deltas, :baseline_total, :context_total, :verdict, :baseline_scores, :context_scores, :criteria
+    attr_reader :deltas, :baseline_total, :context_total, :verdict, :baseline_scores, :context_scores, :criteria,
+                :baseline_dimensions, :context_dimensions
 
     # Computes deltas and verdict from baseline and context judge responses.
     #
@@ -34,6 +35,8 @@ module SkillBench
     def call
       return mismatch_result unless dimensions_match?
 
+      @baseline_dimensions = deep_copy_dimensions(baseline)
+      @context_dimensions = deep_copy_dimensions(context)
       @baseline_scores = extract_scores(baseline)
       @context_scores = extract_scores(context)
       compute_totals
@@ -77,6 +80,10 @@ module SkillBench
 
     def extract_scores(dimensions)
       dimensions.transform_values { |dim| extract_score(dim) }
+    end
+
+    def deep_copy_dimensions(dimensions)
+      dimensions.transform_values(&:dup)
     end
 
     def determine_verdict

@@ -22,26 +22,69 @@ module SkillBench
             **config[:client_params]
           )
 
-          return { continue: false, result: client_result } unless client_result[:success]
+          unless client_result[:success]
+            error_msg = client_result.dig(:response, :error, :message) || 'Unknown error'
+            return {
+              continue: false,
+              result: client_result,
+              iteration: build_iteration(thought: '', tools_used: [], observation_summary: error_msg)
+            }
+          end
 
           response_msg = client_result.dig(:response, :message)
-          return { continue: false, result: { success: false, response: { error: { message: 'Empty response from LLM' } } } } unless response_msg
+          unless response_msg
+            return {
+              continue: false,
+              result: { success: false, response: { error: { message: 'Empty response from LLM' } } },
+              iteration: build_iteration(thought: '', tools_used: [], observation_summary: 'Empty response from LLM')
+            }
+          end
 
           messages << response_msg
 
           tool_calls = response_msg['tool_calls']
           content = response_msg['content']
+          tool_calls_array = Array(tool_calls)
+          thought = content.to_s
 
-          return { continue: false, result: { success: true, response: { content: content } } } if Array(tool_calls).empty?
+          if tool_calls_array.empty?
+            return {
+              continue: false,
+              result: { success: true, response: { content: content } },
+              iteration: build_iteration(thought: thought, tools_used: [], observation_summary: '')
+            }
+          end
 
-          if content.to_s.strip.length.positive?
+          if thought.strip.length.positive?
             warn "\n=== Agent Thought ==="
             warn content
           end
 
-          messages.concat(ToolExecutor.call(tool_calls, config[:working_dir], config[:container_id]))
+          tool_results = ToolExecutor.call(tool_calls, config[:working_dir], config[:container_id])
+          messages.concat(tool_results)
 
-          { continue: true, messages: messages }
+          tools_used = tool_calls_array.map { |tc| tc.dig('function', 'name') }.compact
+          observation_summary = Array(tool_results).map { |tr| tr[:content] || tr['content'] }.compact.join(', ')
+
+          {
+            continue: true,
+            messages: messages,
+            iteration: build_iteration(thought: thought, tools_used: tools_used, observation_summary: observation_summary)
+          }
+        end
+
+        # Builds an iteration metadata hash.
+        #
+        # @param thought [String] The agent's reasoning for this step.
+        # @param tools_used [Array<String>] Names of tools invoked.
+        # @param observation_summary [String] Summary of tool results.
+        # @return [Hash] Iteration metadata.
+        def self.build_iteration(thought:, tools_used:, observation_summary:)
+          {
+            thought: thought,
+            tools_used: tools_used,
+            observation_summary: observation_summary
+          }
         end
       end
     end

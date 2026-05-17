@@ -1,21 +1,27 @@
 # frozen_string_literal: true
 
-require 'json'
-require 'cgi'
+require_relative 'services/iteration_formatter'
+require_relative 'services/delta_table_formatter'
+require_relative 'services/feedback_generator'
+require_relative 'services/json_formatter'
+require_relative 'services/junit_formatter'
 
 module SkillBench
-  # Handles formatting output for different use cases (human, CI, etc.)
+  # Handles formatting output for different use cases (human, CI, etc.).
+  # Delegates all presentation logic to focused service objects under
+  # {SkillBench::Services}.
   class OutputFormatter
-    # Format the eval result for output
+    # Format the eval result for output.
+    #
     # @param result [Hash] Eval result with keys like :eval_name, :pass, :score, etc.
     # @param format [Symbol] Output format (:human, :json, :junit)
     # @return [String] Formatted output string
     def self.format(result, format: :human)
       case format
       when :json
-        format_json(result)
+        Services::JsonFormatter.format(result)
       when :junit
-        format_junit(result)
+        Services::JUnitFormatter.format(result)
       else
         format_human(result)
       end
@@ -76,11 +82,11 @@ module SkillBench
     end
     private_class_method :format_legacy_human
 
-    # Formats a DeltaReport as a human-readable table.
+    # Formats a DeltaReport as a human-readable report.
     #
     # @param result [Hash] Eval result envelope.
     # @param report [SkillBench::DeltaReport] The delta report.
-    # @return [String] Formatted table string.
+    # @return [String] Formatted report string.
     def self.format_delta_report(result, report)
       lines = [
         ('═' * 55),
@@ -91,139 +97,36 @@ module SkillBench
         ''
       ]
 
-      lines << '  DIMENSION                BASELINE   CONTEXT    DELTA'
-      lines << '  ──────────────────────── ───────── ───────── ───────'
+      lines.concat(build_iteration_lines(result))
+      lines << Services::DeltaTableFormatter.format(report, result)
 
-      report.deltas.each do |name, delta|
-        lines << format_dimension_row(name, delta, report)
+      feedback_result = Services::FeedbackGenerator.call(report)
+      if feedback_result[:success]
+        output = feedback_result.dig(:response, :output)
+        lines << output unless output.empty?
       end
-
-      lines << '  ──────────────────────── ───────── ───────── ───────'
-      lines << format_total_row(report)
-      lines << ''
-      lines << format_trend(result[:trend]) if result[:trend]
-
-      status = report.verdict ? 'PASS' : 'FAIL'
-      threshold = report.criteria.pass_threshold
-      delta = report.criteria.minimum_delta
-      lines << "  VERDICT: #{status} (threshold: #{threshold}, minimum delta: #{delta})"
-      lines << ('═' * 55)
 
       lines.join("\n")
     end
     private_class_method :format_delta_report
 
-    # Formats a single dimension row for the delta report table.
+    # Builds iteration timeline lines from the result response.
     #
-    # @param name [String] The dimension name.
-    # @param delta [Numeric] The delta value.
-    # @param report [SkillBench::DeltaReport] The delta report.
-    # @return [String] Formatted row string.
-    def self.format_dimension_row(name, delta, report)
-      dim = report.criteria.dimensions.find { |d| d.name == name }
-      max_score = dim&.max_score || ''
-      humanized = humanize(name)
-      label = dim ? "#{humanized} (#{max_score})" : humanized
-      baseline_score = report.baseline_scores[name]
-      context_score = report.context_scores[name]
-      Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>7s',
-                    label: label, baseline: baseline_score, context: context_score,
-                    delta: delta_str(delta))
+    # @param result [Hash] Eval result envelope.
+    # @return [Array<String>] Lines to append, or empty array.
+    def self.build_iteration_lines(result)
+      baseline = result.dig(:response, :baseline_iterations) || []
+      context = result.dig(:response, :context_iterations) || []
+      baseline_empty = baseline.empty?
+      context_empty = context.empty?
+      lines = []
+
+      lines << Services::IterationFormatter.format('BASELINE ITERATIONS', baseline) unless baseline_empty
+      lines << Services::IterationFormatter.format('CONTEXT ITERATIONS', context) unless context_empty
+      lines << '' unless baseline_empty && context_empty
+
+      lines
     end
-    private_class_method :format_dimension_row
-
-    # Formats the total row for the delta report table.
-    #
-    # @param report [SkillBench::DeltaReport] The delta report.
-    # @return [String] Formatted total row string.
-    def self.format_total_row(report)
-      Kernel.format('  %<label>-24s %<baseline>9s %<context>9s %<delta>7s',
-                    label: 'TOTAL', baseline: "#{report.baseline_total}/100",
-                    context: "#{report.context_total}/100",
-                    delta: delta_str(report.deltas.values.sum))
-    end
-    private_class_method :format_total_row
-
-    # Formats a numeric delta with a +/- sign.
-    #
-    # @param delta [Numeric] The delta value.
-    # @return [String] Formatted delta string.
-    def self.delta_str(delta)
-      delta >= 0 ? "+#{delta}" : delta.to_s
-    end
-    private_class_method :delta_str
-
-    # Formats the trend line for display.
-    #
-    # @param trend [Hash] Trend data with :baseline_trend, :context_trend, :baseline_delta, :context_delta.
-    # @return [String, nil] Formatted trend line or nil.
-    def self.format_trend(trend)
-      return nil unless trend
-
-      baseline_icon = trend_icon(trend[:baseline_trend])
-      context_icon = trend_icon(trend[:context_trend])
-      baseline_delta = trend[:baseline_delta]
-      context_delta = trend[:context_delta]
-      "  TREND: baseline #{baseline_icon} (#{delta_str(baseline_delta)}), context #{context_icon} (#{delta_str(context_delta)})"
-    end
-    private_class_method :format_trend
-
-    # Returns the Unicode arrow icon for a trend direction.
-    #
-    # @param direction [Symbol] :improved, :regressed, or :unchanged.
-    # @return [String] Arrow icon.
-    def self.trend_icon(direction)
-      { improved: '↑', regressed: '↓', unchanged: '→' }.fetch(direction, '?')
-    end
-    private_class_method :trend_icon
-
-    # Converts a snake_case name to Title Case.
-    #
-    # @param name [String] The dimension name.
-    # @return [String] Human-readable name.
-    def self.humanize(name)
-      name.to_s.split('_').map(&:capitalize).join(' ')
-    end
-    private_class_method :humanize
-
-    # Format result as JSON
-    # @param result [Hash] Eval result
-    # @return [String] JSON-formatted string
-    def self.format_json(result)
-      JSON.pretty_generate(result)
-    end
-    private_class_method :format_json
-
-    # Format result as JUnit XML.
-    # Supports both legacy format (result[:pass]) and modern DeltaReport format.
-    #
-    # @param result [Hash] Eval result
-    # @return [String] JUnit XML-formatted string
-    def self.format_junit(result)
-      report = result.dig(:response, :report)
-      verdict = report.respond_to?(:verdict) ? report.verdict : result[:pass]
-      eval_name = CGI.escapeHTML(result[:eval_name].to_s)
-
-      if verdict
-        <<~XML
-          <?xml version="1.0"?>
-          <testsuite name="SkillBench" tests="1" failures="0">
-            <testcase name="#{eval_name}" classname="SkillBench"/>
-          </testsuite>
-        XML
-      else
-        score = report.respond_to?(:context_total) ? report.context_total : result[:score]
-        escaped_score = CGI.escapeHTML(score.to_s)
-        <<~XML
-          <?xml version="1.0"?>
-          <testsuite name="SkillBench" tests="1" failures="1">
-            <testcase name="#{eval_name}" classname="SkillBench">
-              <failure message="Score: #{escaped_score}">Eval failed</failure>
-            </testcase>
-          </testsuite>
-        XML
-      end
-    end
-    private_class_method :format_junit
+    private_class_method :build_iteration_lines
   end
 end

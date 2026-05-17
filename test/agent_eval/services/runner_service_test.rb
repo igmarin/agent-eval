@@ -268,7 +268,93 @@ module SkillBench
         assert result[:success]
       end
 
+      def test_call_returns_baseline_and_context_iterations
+        write_openai_config
+        stub_react_agent_with_iterations
+        stub_trend_tracker
+
+        SkillBench::Evaluation::Runner.expects(:call).returns({
+                                                                success: true,
+                                                                response: {
+                                                                  report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
+                                                                                     keyword_init: true).new(
+                                                                                       verdict: true, baseline_total: 30, context_total: 80, deltas: {}
+                                                                                     )
+                                                                }
+                                                              })
+
+        result = RunnerService.call(
+          eval_name: 'test-eval',
+          skill_names: ['test-skill']
+        )
+
+        assert result[:success]
+        assert result[:response][:baseline_iterations]
+        assert result[:response][:context_iterations]
+        assert_equal 2, result[:response][:baseline_iterations].length
+        assert_equal 1, result[:response][:context_iterations].length
+
+        first_baseline = result[:response][:baseline_iterations].first
+
+        assert_equal 1, first_baseline[:step_number]
+        assert_equal 'Read task', first_baseline[:thought]
+        assert_equal %w[read_file], first_baseline[:tools_used]
+      end
+
+      def test_call_includes_diff_in_agent_output
+        write_openai_config
+        stub_react_agent_with_iterations
+        stub_trend_tracker
+
+        captured = { baseline: nil, context: nil }
+        SkillBench::Evaluation::Runner.stubs(:call).with do |params|
+          captured[:baseline] = params[:baseline_output]
+          captured[:context] = params[:context_output]
+          true
+        end.returns({
+                      success: true,
+                      response: {
+                        report: Struct.new(:verdict, :baseline_total, :context_total, :deltas,
+                                           keyword_init: true).new(
+                                             verdict: true, baseline_total: 30, context_total: 80, deltas: {}
+                                           )
+                      }
+                    })
+
+        RunnerService.call(
+          eval_name: 'test-eval',
+          skill_names: ['test-skill']
+        )
+
+        assert_includes captured[:baseline], 'Agent result'
+        assert_includes captured[:baseline], '+added line'
+        assert_includes captured[:context], 'Agent result'
+      end
+
       private
+
+      def stub_react_agent_with_iterations
+        baseline_iterations = [
+          { step_number: 1, thought: 'Read task', tools_used: %w[read_file], observation_summary: 'content' },
+          { step_number: 2, thought: 'Done', tools_used: [], observation_summary: '' }
+        ]
+        context_iterations = [
+          { step_number: 1, thought: 'Final', tools_used: [], observation_summary: '' }
+        ]
+
+        Agent::ReactAgent.stubs(:call).returns(
+          { success: true, response: { content: 'Agent result', iterations: baseline_iterations } }
+        ).then.returns(
+          { success: true, response: { content: 'Agent result', iterations: context_iterations } }
+        )
+
+        Execution::Sandbox.stubs(:capture_diff).returns('+added line')
+      end
+
+      def stub_trend_tracker
+        TrendTracker.any_instance.stubs(:trend_for).returns({})
+        TrendTracker.any_instance.stubs(:record).returns({ success: true })
+      end
 
       def write_mock_config
         Models::Config.instance_variable_set(:@loaded, nil)

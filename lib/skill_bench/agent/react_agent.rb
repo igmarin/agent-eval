@@ -17,7 +17,7 @@ module SkillBench
       # @param params [Hash] The configuration for the agent.
       # @option params [String] :system_prompt The instructions establishing the agent's persona and rules.
       # @option params [String] :initial_prompt The user task the agent must complete.
-      # @option params [Integer] :max_iterations (10) The maximum allowed steps before aborting.
+      # @option params [Integer] :max_iterations (25) The maximum allowed steps before aborting.
       # @option params [String] :working_dir (Dir.pwd) The directory where tools should operate.
       # @option params [Hash] :client_params ({}) Configuration passed to the Client (e.g., model).
       # @return [Hash] A result hash with :success, and :response payload containing the final answer.
@@ -29,7 +29,7 @@ module SkillBench
       def initialize(params)
         @system_prompt = params[:system_prompt]
         @initial_prompt = params[:initial_prompt]
-        @max_iterations = params[:max_iterations] || 10
+        @max_iterations = params[:max_iterations] || 25
         @working_dir = params[:working_dir] || Dir.pwd
         @container_id = params[:container_id]
         @client_params = params[:client_params] || {}

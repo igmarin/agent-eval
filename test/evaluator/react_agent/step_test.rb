@@ -74,6 +74,59 @@ module SkillBench
         assert_equal 'tool', result[:messages].last[:role]
         assert_equal 'result', result[:messages].last[:content]
       end
+
+      def test_call_returns_iteration_metadata_when_no_tool_calls
+        Client.expects(:call).returns(
+          { success: true, response: { message: { 'content' => 'Final Answer', 'tool_calls' => [] } } }
+        )
+
+        result = Agent::ReactAgent::Step.call(@messages, @config)
+
+        assert result[:iteration]
+        assert_equal 'Final Answer', result[:iteration][:thought]
+        assert_equal [], result[:iteration][:tools_used]
+        assert_equal '', result[:iteration][:observation_summary]
+      end
+
+      def test_call_returns_iteration_metadata_with_tools
+        Client.expects(:call).returns(
+          {
+            success: true,
+            response: {
+              message: {
+                'content' => 'Let me check...',
+                'tool_calls' => [
+                  { 'id' => 'call_1', 'function' => { 'name' => 'read_file', 'arguments' => '{"path":"a"}' } },
+                  { 'id' => 'call_2', 'function' => { 'name' => 'run_command', 'arguments' => '{"command":"ls"}' } }
+                ]
+              }
+            }
+          }
+        )
+
+        Agent::ReactAgent::ToolExecutor.expects(:call).returns([
+                                                                 { role: 'tool', tool_call_id: 'call_1', content: 'file_a_content' },
+                                                                 { role: 'tool', tool_call_id: 'call_2', content: 'file_list' }
+                                                               ])
+
+        result = Agent::ReactAgent::Step.call(@messages, @config)
+
+        assert result[:iteration]
+        assert_equal 'Let me check...', result[:iteration][:thought]
+        assert_equal %w[read_file run_command], result[:iteration][:tools_used]
+        assert_equal 'file_a_content, file_list', result[:iteration][:observation_summary]
+      end
+
+      def test_call_returns_iteration_metadata_on_client_failure
+        Client.expects(:call).returns({ success: false, response: { error: { message: 'API Error' } } })
+
+        result = Agent::ReactAgent::Step.call(@messages, @config)
+
+        assert result[:iteration]
+        assert_equal '', result[:iteration][:thought]
+        assert_equal [], result[:iteration][:tools_used]
+        assert_equal 'API Error', result[:iteration][:observation_summary]
+      end
     end
   end
 end
