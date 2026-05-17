@@ -60,7 +60,53 @@ module SkillBench
       assert_match(/mismatch/, result[:response][:error][:message])
     end
 
+    def test_preserves_baseline_reasoning
+      baseline = build_response_with_reasoning(20, 'Baseline reasoning')
+      context = build_response_with_reasoning(25, 'Context reasoning')
+      criteria = build_criteria(70, 10)
+
+      result = DeltaReport.call(baseline: baseline, context: context, criteria: criteria)
+
+      assert result[:success]
+      report = result[:response][:delta_report]
+
+      assert_equal 'Baseline reasoning', report.baseline_dimensions['correctness'][:reasoning]
+    end
+
+    def test_preserves_context_reasoning
+      baseline = build_response_with_reasoning(20, 'Baseline reasoning')
+      context = build_response_with_reasoning(25, 'Context reasoning')
+      criteria = build_criteria(70, 10)
+
+      result = DeltaReport.call(baseline: baseline, context: context, criteria: criteria)
+
+      assert result[:success]
+      report = result[:response][:delta_report]
+
+      assert_equal 'Context reasoning', report.context_dimensions['correctness'][:reasoning]
+    end
+
+    def test_preserves_max_score_per_dimension
+      baseline = build_response_with_reasoning(20, 'Baseline reasoning')
+      context = build_response_with_reasoning(25, 'Context reasoning')
+      criteria = build_criteria(70, 10)
+
+      result = DeltaReport.call(baseline: baseline, context: context, criteria: criteria)
+
+      assert result[:success]
+      report = result[:response][:delta_report]
+
+      assert_equal 30, report.baseline_dimensions['correctness'][:max_score]
+      assert_equal 30, report.context_dimensions['correctness'][:max_score]
+    end
+
     private
+
+    def build_response_with_reasoning(score, reasoning)
+      {
+        'correctness' => { score: score, max_score: 30, reasoning: reasoning }
+      }
+    end
 
     def build_response(correctness, skill, quality, coverage, docs)
       {

@@ -302,6 +302,17 @@ Both skill contexts are concatenated. The judge evaluates whether the combined c
   Provider: openai
 ═══════════════════════════════════════════════════════
 
+  === BASELINE ITERATIONS ===
+  Step 1: Read task → Tool: read_file → Observation: content...
+  Step 2: Plan changes → Tool: write_file → Observation: Success...
+  Step 3: Run tests → Tool: run_command → Observation: 3 runs, 0 failures
+  Step 4: Final answer
+
+  === CONTEXT ITERATIONS ===
+  Step 1: Read task → Tool: read_file → Observation: content...
+  Step 2: Apply skill pattern → Tool: write_file, run_command → Observation: Success...
+  Step 3: Final answer
+
   DIMENSION                BASELINE   CONTEXT    DELTA
   ──────────────────────── ───────── ───────── ───────
   Correctness (30)                12        28     +16
@@ -315,6 +326,17 @@ Both skill contexts are concatenated. The judge evaluates whether the combined c
   TREND: baseline ↑ (+2), context ↑ (+7)
   VERDICT: PASS (threshold: 70, minimum delta: 10)
 ═══════════════════════════════════════════════════════
+
+  === WHAT WENT WELL ===
+  Correctness (28/30, baseline: 12/30)
+    The agent correctly implemented all required behaviors.
+  Skill Adherence (22/25, baseline: 5/25)
+    Followed the service object pattern and hard gates.
+
+  === WHAT WENT WRONG ===
+  Test Coverage (13/15, baseline: 3/15)
+    Tests exist but edge cases are missing.
+    Advice: Are there meaningful tests? Do they test the right things?
 ```
 
 **Column meanings:**
@@ -326,6 +348,10 @@ Both skill contexts are concatenated. The judge evaluates whether the combined c
 | **DELTA** | Improvement = CONTEXT - BASELINE. Think: "How many points did my skill add?" |
 | **TREND** | Change since the *previous* run of this exact eval + skill. Stored in `.skill-bench-history.json`. |
 | **VERDICT** | PASS only if CONTEXT >= threshold AND DELTA >= minimum_delta. Both must be true. |
+| **Iterations** | ReAct loop steps for each run: thought → tools → observation. Helps you understand *how* the agent worked. |
+| **What went well** | Dimensions scoring ≥ 80% of max, with judge reasoning. Strengths of your skill. |
+| **What went wrong** | Dimensions scoring < 80% of max, with judge reasoning + baseline comparison. Weaknesses to fix. |
+| **Advice** | Description from `criteria.json` for each low-scoring dimension. Actionable guidance for improvement. |
 
 **Why both conditions for PASS?**
 
@@ -351,6 +377,25 @@ If baseline=89 and context=87, your skill confused the agent. The agent scored h
 3. **Over-engineering** — skill adds boilerplate (factories, decorators) that the judge penalizes as unnecessary
 
 **Fix:** Remove rules that don't directly improve the weakest dimension. Measure: look at the dimension with the smallest (or most negative) delta. Delete or rewrite rules targeting that dimension.
+
+**Using the iteration timeline:**
+
+The iteration timeline shows every tool call the agent made. Watch for:
+
+- **Many `read_file` errors** — The agent is guessing filenames. Add `ls` or `find` to `allowed_commands` in `skill-bench.json`, or write a more explicit task.
+- **Tool errors in baseline but not context** — Your skill taught the agent correct file paths or command sequences. Good!
+- **Tool errors in both runs** — The task references files that don't exist in the sandbox. Check your `task.md` for stale paths.
+- **Many iterations, no final answer** — The agent hit the max iteration limit. Increase `max_iterations` in your provider config:
+
+```json
+{
+  "config": {
+    "max_iterations": 50
+  }
+}
+```
+
+Default is 25. Complex Rails tasks often need 30–50+ steps.
 
 **JSON output:**
 
@@ -416,7 +461,8 @@ Created by `skill-bench init`. Stores provider, API key, model, timeout, and all
   "allowed_commands": ["rspec", "bundle", "ruby", "git"],
   "config": {
     "api_key": "sk-...",
-    "model": "gpt-4o"
+    "model": "gpt-4o",
+    "max_iterations": 25
   }
 }
 ```

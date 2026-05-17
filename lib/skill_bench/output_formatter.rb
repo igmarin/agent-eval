@@ -91,6 +91,13 @@ module SkillBench
         ''
       ]
 
+      baseline_iterations = result.dig(:response, :baseline_iterations) || []
+      context_iterations = result.dig(:response, :context_iterations) || []
+
+      lines << format_iterations('BASELINE ITERATIONS', baseline_iterations) unless baseline_iterations.empty?
+      lines << format_iterations('CONTEXT ITERATIONS', context_iterations) unless context_iterations.empty?
+      lines << '' unless baseline_iterations.empty? && context_iterations.empty?
+
       lines << '  DIMENSION                BASELINE   CONTEXT    DELTA'
       lines << '  ──────────────────────── ───────── ───────── ───────'
 
@@ -108,6 +115,9 @@ module SkillBench
       delta = report.criteria.minimum_delta
       lines << "  VERDICT: #{status} (threshold: #{threshold}, minimum delta: #{delta})"
       lines << ('═' * 55)
+
+      feedback = format_feedback(report)
+      lines << feedback unless feedback.empty?
 
       lines.join("\n")
     end
@@ -225,5 +235,98 @@ module SkillBench
       end
     end
     private_class_method :format_junit
+
+    # Formats an iteration timeline section.
+    #
+    # @param title [String] Section title.
+    # @param iterations [Array<Hash>] Iteration metadata.
+    # @return [String] Formatted section.
+    def self.format_iterations(title, iterations)
+      lines = ["  === #{title} ==="]
+      iterations.each do |iter|
+        tools = iter[:tools_used] || []
+        tool_str = tools.empty? ? '' : " → Tool: #{tools.join(', ')}"
+        observation = iter[:observation_summary].to_s
+        observation_str = observation.empty? ? '' : " → Observation: #{truncate(observation, 60)}"
+        lines << "  Step #{iter[:step_number]}: #{iter[:thought]}#{tool_str}#{observation_str}"
+      end
+      lines.join("\n")
+    end
+    private_class_method :format_iterations
+
+    # Truncates a string to a maximum length with ellipsis.
+    #
+    # @param text [String] The text to truncate.
+    # @param max_length [Integer] Maximum length.
+    # @return [String] Truncated text.
+    def self.truncate(text, max_length)
+      return text if text.length <= max_length
+
+      "#{text[0...max_length]}..."
+    end
+    private_class_method :truncate
+
+    # Formats feedback sections (what went well, what went wrong, advice).
+    #
+    # @param report [SkillBench::DeltaReport] The delta report.
+    # @return [String] Formatted feedback or empty string if no reasoning.
+    def self.format_feedback(report)
+      return '' unless report.respond_to?(:baseline_dimensions) && report.respond_to?(:context_dimensions)
+
+      context_dims = report.context_dimensions || {}
+      baseline_dims = report.baseline_dimensions || {}
+      return '' if context_dims.empty?
+
+      lines = []
+      well = []
+      wrong = []
+      advice = []
+
+      context_dims.each do |name, dim|
+        baseline_dim = baseline_dims[name]
+        next unless baseline_dim && dim
+
+        score = dim[:score] || dim['score'] || 0
+        max_score = dim[:max_score] || dim['max_score'] || 1
+        pct = max_score.positive? ? (score.to_f / max_score * 100).round : 0
+
+        reasoning = dim[:reasoning] || dim['reasoning'] || ''
+        baseline_score = baseline_dim[:score] || baseline_dim['score'] || 0
+        dim_obj = report.criteria.dimensions.find { |d| d.name == name }
+        humanized = humanize(name)
+        label = "#{humanized} (#{score}/#{max_score}, baseline: #{baseline_score}/#{max_score})"
+
+        if pct >= 80
+          well << "  #{label}"
+          well << "    #{reasoning}" unless reasoning.empty?
+        else
+          wrong << "  #{label}"
+          wrong << "    #{reasoning}" unless reasoning.empty?
+          dim_advice = dim_obj&.description.to_s
+          advice << "  #{humanized}: #{dim_advice}" unless dim_advice.empty?
+        end
+      end
+
+      unless well.empty?
+        lines << ''
+        lines << '  === WHAT WENT WELL ==='
+        lines.concat(well)
+      end
+
+      unless wrong.empty?
+        lines << ''
+        lines << '  === WHAT WENT WRONG ==='
+        lines.concat(wrong)
+      end
+
+      unless advice.empty?
+        lines << ''
+        lines << '  === ADVICE ==='
+        lines.concat(advice)
+      end
+
+      lines.join("\n")
+    end
+    private_class_method :format_feedback
   end
 end

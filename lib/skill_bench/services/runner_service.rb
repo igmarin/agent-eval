@@ -9,8 +9,10 @@ require_relative '../models/provider'
 require_relative '../clients/all'
 require_relative 'skill_resolver'
 require_relative '../trend_tracker'
+require_relative '../execution/sandbox'
 require_relative '../execution/context_hydrator'
 require_relative '../execution/source_path_resolver'
+require_relative '../agent/react_agent'
 
 module SkillBench
   module Services
@@ -86,7 +88,11 @@ module SkillBench
           eval_name: eval_name,
           skill_name: skill_names.join(', '),
           provider_name: provider.name,
-          response: result[:response].merge(trend: trend_result[:trend])
+          response: result[:response].merge(
+            trend: trend_result[:trend],
+            baseline_iterations: baseline_output[:iterations] || [],
+            context_iterations: context_output[:iterations] || []
+          )
         }
       end
 
@@ -134,29 +140,57 @@ module SkillBench
       # @param system_prompt [String] The system prompt for the agent.
       # @param provider [Object] The resolved provider.
       # @param config [Hash, nil] Provider config.
-      # @return [Hash] Agent response with result, status, runtime, usage, raw_response.
+      # @return [Hash] Agent response with result, status, runtime, usage, raw_response, iterations.
       def spawn_agent(evaluation, system_prompt, provider, config)
-        return { result: 'mock result', status: :success } if provider.name == 'mock'
+        return { result: 'mock result', status: :success, iterations: [] } if provider.name == 'mock'
 
-        client_class = SkillBench::Clients::ProviderRegistry.for(provider.runtime.to_sym)
+        client_params = build_client_params(provider, config)
+
+        max_iterations = config[:max_iterations] || config['max_iterations'] || 25
+
+        Execution::Sandbox.run(evaluation.path) do |sandbox|
+          agent_result = Agent::ReactAgent.call(
+            system_prompt: system_prompt,
+            initial_prompt: evaluation.task,
+            working_dir: sandbox.path,
+            container_id: sandbox.container_id,
+            client_params: client_params,
+            max_iterations: max_iterations
+          )
+
+          status = agent_result[:success] ? :success : :error
+          final_answer = agent_result.dig(:response, :content) || ''
+          diff = Execution::Sandbox.capture_diff(sandbox.path)
+          iterations = agent_result.dig(:response, :iterations) || []
+
+          output = [final_answer, diff].reject(&:empty?).join("\n\n")
+
+          {
+            result: output,
+            status: status,
+            runtime: provider.runtime,
+            usage: {},
+            raw_response: agent_result,
+            iterations: iterations
+          }
+        end
+      end
+
+      # Builds client parameters for the ReactAgent.
+      #
+      # @param provider [Object] The resolved provider.
+      # @param config [Hash, nil] Provider config.
+      # @return [Hash] Client parameters.
+      def build_client_params(provider, config)
         config ||= safe_merged_config(provider)
-        options = config.dup
-        options[:model] ||= provider.llm
+        return {} unless config
 
-        response = client_class.call(
-          system_prompt: system_prompt,
-          messages: [{ role: 'user', content: evaluation.task }],
-          **options
-        )
-
-        status = response[:success] ? :success : :error
-        {
-          result: response[:result],
-          status: status,
-          runtime: provider.runtime,
-          usage: response[:usage],
-          raw_response: response[:response]
-        }
+        params = config.dup
+        params[:model] ||= provider.llm
+        params[:provider] = provider.runtime.to_sym
+        params
+      rescue StandardError
+        {}
       end
 
       # Builds the baseline system prompt (no skill context).
@@ -270,11 +304,13 @@ module SkillBench
       end
 
       def agent_error_result(result, phase, evaluation, provider)
+        raw = result[:raw_response]
+        error_msg = raw&.dig(:response, :error, :message) || raw&.dig(:error, :message) || 'unknown error'
         {
           success: false,
           response: {
             error: {
-              message: "#{phase.capitalize} agent failed: #{result[:raw_response]&.dig(:error, :message) || 'unknown error'}"
+              message: "#{phase.capitalize} agent failed: #{error_msg}"
             }
           },
           eval_name: evaluation.name,

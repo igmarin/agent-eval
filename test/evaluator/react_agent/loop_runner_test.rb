@@ -67,5 +67,68 @@ module SkillBench
       refute result[:success]
       assert_match(/Reached max iterations/, result[:response][:error][:message])
     end
+
+    def test_call_returns_iterations_in_response
+      # Arrange
+      Client.expects(:call).twice.returns(
+        {
+          success: true,
+          response: {
+            message: {
+              'content' => 'Step 1 thought',
+              'tool_calls' => [{ 'id' => 'call_1', 'function' => { 'name' => 'read_file', 'arguments' => '{"path":"a"}' } }]
+            }
+          }
+        }
+      ).then.returns(
+        { success: true, response: { message: { 'content' => 'Final Answer', 'tool_calls' => [] } } }
+      )
+
+      Agent::ReactAgent::ToolExecutor.expects(:call).returns([{ role: 'tool', tool_call_id: 'call_1', content: 'file content' }])
+
+      # Act
+      result = Agent::ReactAgent::LoopRunner.call('Initial', 10, { working_dir: Dir.pwd, client_params: {} })
+
+      # Assert
+      assert result[:success]
+      assert result[:response][:iterations]
+      assert_equal 2, result[:response][:iterations].length
+
+      first = result[:response][:iterations].first
+
+      assert_equal 1, first[:step_number]
+      assert_equal 'Step 1 thought', first[:thought]
+      assert_equal %w[read_file], first[:tools_used]
+      assert_equal 'file content', first[:observation_summary]
+
+      last = result[:response][:iterations].last
+
+      assert_equal 2, last[:step_number]
+      assert_equal 'Final Answer', last[:thought]
+      assert_equal [], last[:tools_used]
+      assert_equal '', last[:observation_summary]
+    end
+
+    def test_call_returns_iterations_on_max_iterations_error
+      Client.stubs(:call).returns(
+        {
+          success: true,
+          response: {
+            message: {
+              'content' => 'Thinking...',
+              'tool_calls' => [{ 'id' => 'call_1', 'function' => { 'name' => 'run_command', 'arguments' => '{"command":"echo 1"}' } }]
+            }
+          }
+        }
+      )
+
+      Tools.stubs(:execute).returns('Tool Result')
+
+      result = Agent::ReactAgent::LoopRunner.call('Initial', 2, { working_dir: Dir.pwd, client_params: {} })
+
+      refute result[:success]
+      assert result[:response][:iterations]
+      assert_equal 2, result[:response][:iterations].length
+    end
   end
 end

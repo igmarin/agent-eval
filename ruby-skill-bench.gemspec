@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   # Runtime dependencies
-  spec.add_dependency 'activesupport', '>= 6.0'
+  spec.add_dependency 'activesupport', '~> 6.0'
   spec.add_dependency 'cgi',     '~> 0.5.1'
   spec.add_dependency 'dotenv',  '~> 3.2.0'
   spec.add_dependency 'faraday',  '~> 2.14'
