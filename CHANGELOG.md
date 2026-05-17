@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `ReactAgent::Step.call` now returns `:iteration` metadata (`:thought`, `:tools_used`, `:observation_summary`) for per-step timeline rendering
+- `ReactAgent::LoopRunner` collects `:iterations` array into the final response
+- `DeltaReport` now preserves full per-dimension judge reasoning via `baseline_dimensions` and `context_dimensions` attributes
+- `RunnerService` captures `baseline_iterations` and `context_iterations` from sandboxed `ReactAgent` runs
+- `OutputFormatter` human output now renders iteration timelines (`=== BASELINE ITERATIONS ===`, `=== CONTEXT ITERATIONS ===`)
+- `OutputFormatter` human output now renders actionable feedback sections (`=== WHAT WENT WELL ===`, `=== WHAT WENT WRONG ===`, `=== ADVICE ===`) using an 80% score threshold
+- `FormattingHelpers` shared module — `humanize`, `delta_str`, `truncate`, `trend_icon`
+- `IterationFormatter` service — formats ReAct loop step timelines
+- `DeltaTableFormatter` service — formats dimension scoring table, totals, trend, and verdict
+- `FeedbackGenerator` service — categorizes dimension scores into well/wrong/advice from judge reasoning
+- `JsonFormatter` service — extracted JSON formatting from `OutputFormatter`
+- `JUnitFormatter` service — extracted JUnit XML formatting from `OutputFormatter`
+- `max_iterations` default bumped from 10 to 25 (configurable via `skill-bench.json`)
 - `TemplateRegistry` service for programmatic eval scaffolding with 10 Rails pattern categories (`crud`, `api`, `background_job`, `controller`, `model`, `migration`, `concern`, `policy`, `form_object`, `view_component`)
 - `TemplateRegistry` supports three template types: `task_md`, `criteria_json`, `skill_md`
 - `TemplateRegistry` variable interpolation using `{{variable_name}}` syntax
@@ -42,6 +55,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RunnerService` status values normalized from strings to symbols (`:success`, `:error`, `:passed`)
 - `ScoringService#error_score` fixed: `.round` was called on Array instead of Numeric
 - `ResultPrinter` now delegates to `OutputFormatter` for consistent human-readable output
+- `OutputFormatter` refactored from 332-line monolith into thin dispatcher (125 lines) + 6 focused services under `SkillBench::Services`
+- `ToolExecutor` suppresses `=== Calling Tool: ===` debug output during test runs (`defined?(Minitest)` guard)
+- `ErrorLogger` now suppresses stderr output during test runs unless the test explicitly captures `$stderr` via `StringIO`
+- `ReactAgent::LoopRunner#attach_step_number` and `#merge_iterations` now have YARD documentation
+- `ReactAgent::Step` extracted local variables (`tool_calls_array`, `thought`) to eliminate duplicate method calls
 - `Provider::ALLOWED_PROVIDERS` now derived from `ProviderSchemas.names` (single source of truth)
 - `Config.store#assign_current_llm_provider` simplified from obfuscated array/grep pattern to simple conditional
 - `ResponseErrorHandler.log_error` now delegates to `ErrorLogger` (DRY)
@@ -76,6 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `OutputFormatter` no longer double-escapes `score` in JUnit XML failure messages
 - `InitCommand` and `RunCommand` `return 0` inside OptionParser blocks replaced with `raise HelpRequested` (prevents LocalJumpError)
 - `RunCommand` validates `--skill` is present before invoking `Commands::Run`
+- `OutputFormatter#format_delta_report` cyclomatic/perceived complexity reduced from 12 to ≤10 by extracting `build_iteration_lines`
+- `FeedbackGenerator#generate_feedback` ABC size reduced from 59 to ≤50 by extracting `categorize_dimensions`, `extract_values`, `compute_percentage`, `build_categorization`, `assemble_feedback_lines`, and `append_section`
 - `ContextHydrator` escapes file content with `CGI.escapeHTML` before XML insertion
 - `Sandbox.capture_diff` uses separator-aware path validation (`tmp_prefix + File::SEPARATOR`)
 - `RunnerService` silent config errors now propagate clear error messages instead of falling back to mock provider
@@ -116,8 +136,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lib/skill_bench/mcp/` directory — MCP server stub (never required, dead code)
 
 ### Quality
-- 513 tests, 0 failures
-- 91.47% line coverage
+- 614 tests, 0 failures
+- 93.19% line coverage
 - Rubocop: 0 offenses
 - Reek: 0 warnings
 
