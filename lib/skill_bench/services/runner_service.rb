@@ -146,7 +146,7 @@ module SkillBench
 
         client_params = build_client_params(provider, config)
 
-        max_iterations = config[:max_iterations] || config['max_iterations'] || 25
+        max_iterations = config&.[](:max_iterations) || config&.[]('max_iterations') || 25
 
         Execution::Sandbox.run(evaluation.path) do |sandbox|
           agent_result = Agent::ReactAgent.call(
